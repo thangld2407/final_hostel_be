@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/user");
 const userRole = require("../model/userRole");
 const UserRole = require("../model/userRole");
+const sendEmail = require("../utils/nodemailer");
 const { validEmail, validPassword } = require("../utils/validation");
 
 module.exports = {
@@ -70,7 +71,7 @@ module.exports = {
     });
 
     try {
-      let user = await User.findOne({ fullname });
+      let user = await User.findOne({ email });
       if (user) {
         res.json({
           message: "User already exists",
@@ -82,6 +83,15 @@ module.exports = {
       } else {
         const dataToSave = await data.save();
         const dataUserRole = await userRole.save();
+        await sendEmail({
+          email: email,
+          subject: "Thanks you for registering your account",
+          html: `
+            <h3>Your email: ${email}</h3>
+            <h3>Your password: ${password}</h3>
+            <a href="https://main.hostel-management-dev.software">Click here to login</a>
+          `,
+        });
         res.status(200).json({
           message: "Success to create",
           data: { user: dataToSave, role: dataUserRole },
@@ -116,7 +126,7 @@ module.exports = {
   },
   async deleteUser(req, res) {
     try {
-      const id = req.params.id;
+      const id = req.body.user_id;
       await User.findByIdAndRemove(id);
       res.status(200).json({
         message: "Success to delete",

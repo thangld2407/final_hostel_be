@@ -13,6 +13,6 @@ user.get("/user/getall", getAllUser);
 user.get("/user/getone", getOneUser);
 user.post("/user/create", createUser);
 user.post("/user/update", updateUser);
-user.post("/user/delete/:id", deleteUser);
+user.post("/user/delete", deleteUser);
 
 module.exports = user;
