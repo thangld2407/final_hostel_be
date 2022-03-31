@@ -8,21 +8,21 @@ function generatePassword(password, hash) {
 }
 module.exports = {
   async Login(req, res) {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     try {
-      const isUsername = await User.findOne({ username }).lean();
-      if (!isUsername) {
+      const isEmail = await User.findOne({ email }).lean();
+      if (!isEmail) {
         return res.status(401).json({
           message: "Account or password is not correct",
         });
       }
-      if (!generatePassword(password, isUsername.password)) {
+      if (!generatePassword(password, isEmail.password)) {
         return res.status(401).json({
           message: "Account or password is not correct",
         });
       }
       const userInfor = await userRole
-        .find({ user_id: isUsername._id })
+        .find({ user_id: isEmail._id })
         .populate("role_id")
         .populate("user_id", "-password")
         .lean();
