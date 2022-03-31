@@ -93,7 +93,7 @@ module.exports = {
   },
   async updateUser(req, res, next) {
     try {
-      const id = req.body.id;
+      const id = req.body.user_id;
       const options = { new: true };
       const newData = {
         ...req.body,
