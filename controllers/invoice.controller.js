@@ -157,7 +157,18 @@ module.exports = {
   },
   async updateInvoice(req, res, next) {
     const id = req.body.invoice.id;
-    const { status } = req.body;
-    const optiosn = { new: true };
+    const newData = { ...req.body, status: req.body.status };
+    const options = { new: true };
+    const isId = await Invoice.findById(id);
+    if (!isId) {
+      res.status(401).json({
+        message: "Invoice not found",
+      });
+    } else {
+      await Invoice.findByIdAndUpdate(id, newData, options);
+      res.status(200).json({
+        message: "Invoice updated",
+      });
+    }
   },
 };
