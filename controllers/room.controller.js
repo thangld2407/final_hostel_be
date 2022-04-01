@@ -47,7 +47,6 @@ module.exports = {
         status,
       });
       const isRoom = await Room.findOne({ room_name });
-      console.log(isRoom);
       if (isRoom) {
         res.status(401).json({
           message: "The room already exists",
