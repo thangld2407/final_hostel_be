@@ -156,7 +156,7 @@ module.exports = {
     }
   },
   async updateInvoice(req, res, next) {
-    const id = req.body.invoice.id;
+    const id = req.body.invoice_id;
     const newData = { ...req.body, status: req.body.status };
     const options = { new: true };
     const isId = await Invoice.findById(id);

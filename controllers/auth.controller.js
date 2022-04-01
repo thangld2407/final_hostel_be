@@ -22,7 +22,7 @@ module.exports = {
         });
       }
       const userInfor = await userRole
-        .find({ user_id: isEmail._id })
+        .findOne({ user_id: isEmail._id })
         .populate("role_id")
         .populate("user_id", "-password")
         .lean();
