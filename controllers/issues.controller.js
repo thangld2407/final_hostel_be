@@ -1,4 +1,6 @@
 const Issues = require("../model/issues");
+const User = require("../model/user");
+const sendEmail = require("../utils/nodemailer");
 
 module.exports = {
   async getAllIssues(req, res, next) {
@@ -21,13 +23,28 @@ module.exports = {
         status,
         user_id,
       });
+      const rsUser = await User.findOne({ user_id });
       const saveIssues = await data.save();
+      sendEmail({
+        email: rsUser.email,
+        subject: saveIssues.issues_content,
+        html: `
+        <b>
+        Have we received a request to fix or update the problem? We will fix it as soon as possible.
+        </b>
+        <h3>Your problem: </h3>
+        <p>${saveIssues.issues_content}</p>
+        <em>
+          Please wait!
+        </em>
+        `,
+      });
       res.status(200).json({
         message: "create issues successfully",
         data: saveIssues,
       });
     } catch (error) {
-      res.json({ error: error });
+      res.json({ error: "error issues create" });
     }
   },
   async updateIssue(req, res, next) {

@@ -45,6 +45,10 @@ const userSchema = new mongoose.Schema(
       required: false,
       type: String,
     },
+    hostel_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
   },
   {
     timestamps: {

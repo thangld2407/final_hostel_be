@@ -54,6 +54,7 @@ module.exports = {
       hometown,
       rental_date,
       username,
+      hostel_id,
     } = req.body;
     const hashPassword = bcrypt.hashSync(password, 10);
     const data = new User({
@@ -66,6 +67,7 @@ module.exports = {
       hometown,
       rental_date,
       username,
+      hostel_id,
     });
     const userRole = new UserRole({
       role_id: role_id,
