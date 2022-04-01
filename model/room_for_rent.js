@@ -10,10 +10,6 @@ const RoomForRent = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Room",
     },
-    hostel_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Hostel",
-    },
   },
   {
     timestamps: {

@@ -1,6 +1,4 @@
 const Room = require("../model/room");
-const getPath = require("../utils/getPath");
-const { isEmptyOrWhiteSpace } = require("../utils/validation");
 
 module.exports = {
   async getAllRoom(req, res, next) {
@@ -19,29 +17,23 @@ module.exports = {
       const id = req.body.room_id;
       const options = { new: true };
 
-      const filePath = req.file.path.split("\\");
-      const newData = {
-        ...req.body,
-        image: getPath(filePath),
-      };
+      const newData = req.body;
       const rs = await Room.findByIdAndUpdate(id, newData, options);
       res.status(200).json({
         message: "Success to update",
         data: rs,
       });
     } catch (error) {
-      res.status(404).json({ message: error });
+      res.status(404).json({ message: "ERROR-UPDATE ROOM" });
     }
   },
   async createRoom(req, res, next) {
     try {
       const { hostel_id, room_name, price, description, status } = req.body;
-      const image = req.file.path.split("\\");
-      let filePath = getPath(image);
       const data = new Room({
         hostel_id,
         room_name,
-        image: filePath,
+        image,
         price,
         description,
         status,

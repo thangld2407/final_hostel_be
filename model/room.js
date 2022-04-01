@@ -12,11 +12,6 @@ const Room = mongoose.Schema(
       required: true,
       trim: true,
     },
-    image: {
-      type: String,
-      require: true,
-      trim: true,
-    },
     price: {
       type: Number,
       required: true,
