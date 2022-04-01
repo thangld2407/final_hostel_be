@@ -4,7 +4,7 @@ const Issues = require("../model/issues");
 module.exports = {
   async getAllIssues(req, res, next) {
     try {
-      const rs = Issues.find().lean();
+      const rs = await Issues.find().lean();
 
       res
         .status(200)
@@ -23,6 +23,7 @@ module.exports = {
         user_id,
       });
       const saveIssues = await data.save();
+      console.log(data);
       res.status(200).json({
         message: "create issues successfully",
         data: saveIssues,

@@ -25,7 +25,7 @@ module.exports = async (req, res, next) => {
         message: err.message,
       });
     }
-    const user = await User.findById(decoded.users[0].user_id._id);
+    const user = await User.findById(decoded.users.user_id._id);
     if (!user) {
       res.json({ error: "Unauthorization" });
     }

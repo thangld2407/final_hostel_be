@@ -8,13 +8,15 @@ const { validEmail, validPassword } = require("../utils/validation");
 
 module.exports = {
   async getAllUser(req, res) {
-    const data = await User.find();
+    console.log("data");
     try {
+      const data = await User.find();
       res.status(200).json({
         message: "success to get all data",
         data: data,
       });
     } catch (err) {
+      console.log("SOOSO");
       res.status(500).json({
         message: "error",
         data: err.message,
