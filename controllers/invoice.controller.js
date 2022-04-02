@@ -1,9 +1,11 @@
 const Invoice = require("../model/invoice");
 const Room = require("../model/room");
 const User = require("../model/user");
+const Hostel = require("../model/hostel");
 const sendEmail = require("../utils/nodemailer");
 const { validYearMonth } = require("../utils/validation");
 const { formatPrice } = require("../utils/cash");
+const readXlsxFile = require("read-excel-file/node");
 
 function calcualateTotalService(array) {
   const sum = array.reduce((acc, currentValue, currentIndex, arr) => {
@@ -153,6 +155,46 @@ module.exports = {
     } catch (error) {
       console.log(error);
       res.json({ message: error });
+    }
+  },
+  async uploadInvoiceByExcel(req, res, next) {
+    try {
+      if (!req.file) {
+        return res
+          .status(401)
+          .json({ message: "Please upload an file excel about invoice." });
+      }
+      let path = req.file.path;
+      readXlsxFile(path).then((rows) => {
+        rows.shift();
+        let invoices = [];
+        rows.forEach((row) => {
+          let invoice = {
+            hostel_name: row[0],
+            room_name: row[1],
+            water: row[2],
+            electric: row[3],
+            price_water: row[4],
+            price_electric: row[5],
+            other: row[6],
+            total: row[7],
+          };
+          invoices.push(invoice);
+        });
+        invoices.map(async (item) => {
+          try {
+            const hostel = await Hostel.findOne({ name: item.hostel_name });
+            console.log(hostel);
+          } catch (error) {
+            console.log(error);
+          }
+        });
+        res.status(200).json({
+          data: invoices,
+        });
+      });
+    } catch (error) {
+      res.status(500).json({ message: "ERROR UPLOAD FILE SYSERROR" });
     }
   },
   async updateInvoice(req, res, next) {

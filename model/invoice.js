@@ -29,7 +29,7 @@ const Invoice = mongoose.Schema(
     },
     other_service: {
       type: Array,
-      trim: true,
+      trim: false,
     },
     user_id: {
       type: mongoose.Schema.Types.ObjectId,

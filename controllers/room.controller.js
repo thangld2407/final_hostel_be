@@ -33,7 +33,6 @@ module.exports = {
       const data = new Room({
         hostel_id,
         room_name,
-        image,
         price,
         description,
         status,
