@@ -69,40 +69,45 @@ module.exports = {
       username,
       hostel_id,
     });
-    const userRole = new UserRole({
-      role_id: role_id,
-      user_id: data._id,
-    });
-
-    try {
-      let user = await User.findOne({ email });
-      if (user) {
-        res.json({
-          message: "User already exists",
-        });
-      } else if (!validEmail(email)) {
-        res.json({ message: "Invalid email" });
-      } else if (!validPassword(password)) {
-        res.json({ message: "Password must be at least > 8 character" });
-      } else {
-        const dataToSave = await data.save();
-        const dataUserRole = await userRole.save();
-        await sendEmail({
-          email: email,
-          subject: "Thanks you for registering your account",
-          html: `
-            <h3>Your email: ${email}</h3>
-            <h3>Your password: ${password}</h3>
-            <a href="https://main.hostel-management-dev.software">Click here to login</a>
-          `,
-        });
-        res.status(200).json({
-          message: "Success to create",
-          data: { user: dataToSave, role: dataUserRole },
-        });
+    if (!role_id) {
+      res.status(401).json({
+        message: "You must enter role_id",
+      });
+    } else {
+      const userRole = new UserRole({
+        role_id: role_id,
+        user_id: data._id,
+      });
+      try {
+        let user = await User.findOne({ email });
+        if (user) {
+          res.json({
+            message: "User already exists",
+          });
+        } else if (!validEmail(email)) {
+          res.json({ message: "Invalid email" });
+        } else if (!validPassword(password)) {
+          res.json({ message: "Password must be at least > 8 character" });
+        } else {
+          const dataToSave = await data.save();
+          const dataUserRole = await userRole.save();
+          await sendEmail({
+            email: email,
+            subject: "Thanks you for registering your account",
+            html: `
+              <h3>Your email: ${email}</h3>
+              <h3>Your password: ${password}</h3>
+              <a href="https://main.hostel-management-dev.software">Click here to login</a>
+            `,
+          });
+          res.status(200).json({
+            message: "Success to create",
+            data: { user: dataToSave, role: dataUserRole },
+          });
+        }
+      } catch (error) {
+        res.status(401).json({ message: error.message });
       }
-    } catch (error) {
-      res.status(400).json({ message: error.message });
     }
   },
   async updateUser(req, res, next) {

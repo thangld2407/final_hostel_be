@@ -167,8 +167,31 @@ module.exports = {
       let path = req.file.path;
       readXlsxFile(path).then((rows) => {
         rows.shift();
+        let initIndex = [];
+        function getData(header, index) {}
+        for (let i = 0; i < rows[0].length; i++) {
+          if (rows[0][i] !== null) {
+            initIndex.push(i);
+          }
+        }
+        function getData(header, data) {
+          let catValue = [];
+          for (let i = 0; i < header.length; i++) {
+            if (header[i] !== null) {
+              catValue.push({
+                name: header[i],
+                price: data[i],
+              });
+            }
+          }
+          return catValue;
+        }
+
         let invoices = [];
-        rows.forEach((row) => {
+        let header = rows.unshift();
+
+        rows.forEach((row, index) => {
+          console.log(row);
           let invoice = {
             hostel_name: row[0],
             room_name: row[1],
@@ -176,22 +199,25 @@ module.exports = {
             electric: row[3],
             price_water: row[4],
             price_electric: row[5],
-            other: row[6],
-            total: row[7],
+            other: getData(header, row[index]),
+            total: row[row.lenght - 1],
           };
           invoices.push(invoice);
+        });
+        res.json({
+          data: invoices,
         });
         invoices.map(async (item) => {
           try {
             const hostel = await Hostel.findOne({ name: item.hostel_name });
-            console.log(hostel);
+            // console.log(hostel);
           } catch (error) {
             console.log(error);
           }
         });
-        res.status(200).json({
-          data: invoices,
-        });
+        // res.status(200).json({
+        //   data: invoices,
+        // });
       });
     } catch (error) {
       res.status(500).json({ message: "ERROR UPLOAD FILE SYSERROR" });
