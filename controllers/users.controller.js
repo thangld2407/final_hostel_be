@@ -13,13 +13,16 @@ module.exports = {
         .populate("role_id")
         .populate("user_id", "-password")
         .lean();
-
-      res.status(200).json({
-        message: "success to get all data",
-        data: {
-          user: data,
-        },
-      });
+      if (data.user.includes(data.user_id === null)) {
+        return;
+      } else {
+        res.status(200).json({
+          message: "success to get all data",
+          data: {
+            user: data,
+          },
+        });
+      }
     } catch (err) {
       console.log("SOOSO");
       res.status(500).json({
@@ -142,6 +145,7 @@ module.exports = {
     try {
       const id = req.body.user_id;
       await User.findByIdAndRemove(id);
+      await userRole.deleteOne({ user_id: id });
       res.status(200).json({
         message: "Success to delete",
       });
