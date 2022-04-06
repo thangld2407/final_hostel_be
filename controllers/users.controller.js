@@ -8,12 +8,17 @@ const { validEmail, validPassword } = require("../utils/validation");
 
 module.exports = {
   async getAllUser(req, res) {
-    console.log("data");
     try {
-      const data = await User.find();
+      const data = await UserRole.find()
+        .populate("role_id")
+        .populate("user_id", "-password")
+        .lean();
+
       res.status(200).json({
         message: "success to get all data",
-        data: data,
+        data: {
+          user: data,
+        },
       });
     } catch (err) {
       console.log("SOOSO");
