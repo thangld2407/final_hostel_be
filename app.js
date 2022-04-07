@@ -2,7 +2,13 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+var path = require("path");
+
 const app = express();
+
+// view engine setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "hbs");
 
 // CONSTANTS
 const { connectToDB } = require("./database/dbConnect");

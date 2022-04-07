@@ -5,13 +5,39 @@ const Payment = mongoose.Schema(
     invoice_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Invoice",
-      required: true,
+      require: true,
     },
-    response_code: {
-      type: String,
+    vnp_amount: {
+      type: Number,
+      require: true,
       trim: true,
     },
-    bank_code: {
+    vnp_orderInfor: {
+      type: String,
+      require: true,
+      trim: true,
+    },
+    vnp_transactionNo: {
+      type: Number,
+      requir: true,
+      trim: true,
+    },
+    vnp_responseCode: {
+      type: Number,
+      length: [1 - 15],
+      require: true,
+    },
+    vnp_transactionStatus: {
+      type: Number,
+      require: true,
+    },
+    vnp_txnRef: {
+      type: String,
+      require: true,
+      trim: true,
+    },
+
+    vnp_bankCode: {
       type: String,
       trim: true,
     },
