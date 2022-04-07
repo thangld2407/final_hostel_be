@@ -167,45 +167,51 @@ module.exports = {
       let path = req.file.path;
       readXlsxFile(path).then((rows) => {
         rows.shift();
-        let initIndex = [];
-        function getData(header, index) {}
-        for (let i = 0; i < rows[0].length; i++) {
-          if (rows[0][i] !== null) {
-            initIndex.push(i);
+        const header = rows.shift();
+        function getOthers() {
+          let initHeader = [];
+          for (let i = 6; i < header.length - 1; i++) {
+            initHeader.push(header[i]);
           }
-        }
-        function getData(header, data) {
-          let catValue = [];
-          for (let i = 0; i < header.length; i++) {
-            if (header[i] !== null) {
-              catValue.push({
-                name: header[i],
-                price: data[i],
-              });
-            }
-          }
-          return catValue;
+          return initHeader;
         }
 
-        let invoices = [];
-        let header = rows.unshift();
+        function getData() {
+          let data = [];
+          console.log(rows.length);
+          for (let i = 1; i <= rows.length; i++) {
+            let tmp = rows[i].length - 1;
+            data.push({
+              hostel_name: rows[i][0],
+              room_name: rows[i][1],
+              water: rows[i][2],
+              electric: rows[i][3],
+              price_water: rows[i][4],
+              price_electric: rows[i][5],
+              // other: getOthers(),
+              total: rows[i][11],
 
-        rows.forEach((row, index) => {
-          console.log(row);
-          let invoice = {
-            hostel_name: row[0],
-            room_name: row[1],
-            water: row[2],
-            electric: row[3],
-            price_water: row[4],
-            price_electric: row[5],
-            other: getData(header, row[index]),
-            total: row[row.lenght - 1],
-          };
-          invoices.push(invoice);
-        });
+              // GET LẠI OTHER SERVICE
+            });
+          }
+          return data;
+        }
+        // rows.forEach((col, index) => {
+        //   let invoice = {
+        //     hostel_name: col[0],
+        //     room_name: col[1],
+        //     water: col[2],
+        //     electric: col[3],
+        //     price_water: col[4],
+        //     price_electric: col[5],
+        //     other: getData(),
+        //     total: col.lenght - 1,
+        //   };
+        //
+        //   invoices.push(invoice);
+        // });
         res.json({
-          data: invoices,
+          data: getData(),
         });
         invoices.map(async (item) => {
           try {
