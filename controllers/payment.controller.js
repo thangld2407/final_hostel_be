@@ -82,12 +82,20 @@ module.exports = {
         let signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
         vnp_Params["vnp_SecureHash"] = signed;
         vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
+        const dataPayment = new Payment({
+          invoice_id: invoice._id,
+          bank_code: bankCode,
+          create_date: createDate,
+        });
+        dataPayment.save();
+        console.log(vnpUrl);
         res.redirect(vnpUrl);
       }
     }
   },
-  getPayment(req, res, next) {
+  async getPayment(req, res, next) {
     var vnp_Params = req.query;
+
     var secureHash = vnp_Params["vnp_SecureHash"];
 
     delete vnp_Params["vnp_SecureHash"];
@@ -100,6 +108,13 @@ module.exports = {
     var crypto = require("crypto");
     var hmac = crypto.createHmac("sha512", secretKey);
     var signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
+    const invoice = await Payment.findOne({
+      create_date: vnp_Params["vnp_TransactionNo"],
+    });
+    console.log(invoice);
+
+    // đã lấy được thông tin của hoá đơn, từ hoá đơn sẽ lấy ra thông tin phòng lúc này kiểm tra nếu trạng thái thanh toán thành công thì sẽ đặt lại trạng thái phòng thành đã thanh toán
+    // Nay sẽ làm tiếp phần này hoá
 
     if (secureHash === signed) {
       var orderId = vnp_Params["vnp_TxnRef"];
