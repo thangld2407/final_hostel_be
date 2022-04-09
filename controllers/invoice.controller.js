@@ -167,64 +167,44 @@ module.exports = {
       let path = req.file.path;
       readXlsxFile(path).then((rows) => {
         rows.shift();
-        res.json({ rows });
-        // const header = rows.shift();
-        // function getOthers() {
-        //   let initHeader = [];
-        //   for (let i = 6; i < header.length - 1; i++) {
-        //     initHeader.push(header[i]);
-        //   }
-        //   return initHeader;
-        // }
-        // console.log(getOthers);
-        // function getData() {
-        //   let data = [];
-        //   console.log(rows.length);
-        //   for (let i = 1; i <= rows.length; i++) {
-        //     let tmp = rows[i].length - 1;
-        //     data.push({
-        //       hostel_name: rows[i][0],
-        //       room_name: rows[i][1],
-        //       water: rows[i][2],
-        //       electric: rows[i][3],
-        //       price_water: rows[i][4],
-        //       price_electric: rows[i][5],
-        //       // other: getOthers(),
-        //       total: rows[i][11],
+        const arr = rows;
+        const HEADER = arr.shift();
+        const DATA = arr;
 
-        //       // GET LẠI OTHER SERVICE
-        //     });
-        //   }
-        //   return data;
-        // }
-        // // rows.forEach((col, index) => {
-        // //   let invoice = {
-        // //     hostel_name: col[0],
-        // //     room_name: col[1],
-        // //     water: col[2],
-        // //     electric: col[3],
-        // //     price_water: col[4],
-        // //     price_electric: col[5],
-        // //     other: getData(),
-        // //     total: col.lenght - 1,
-        // //   };
-        // //
-        // //   invoices.push(invoice);
-        // // });
-        // res.json({
-        //   data: getData(),
-        // });
-        // invoices.map(async (item) => {
-        //   try {
-        //     const hostel = await Hostel.findOne({ name: item.hostel_name });
-        //     // console.log(hostel);
-        //   } catch (error) {
-        //     console.log(error);
-        //   }
-        // });
-        // res.status(200).json({
-        //   data: invoices,
-        // });
+        let idx = 0;
+        const len = arr.length;
+        const result = [];
+
+        while (idx < len) {
+          result.push({
+            home: DATA[idx][0],
+            other: createOther(HEADER, DATA[idx]),
+          });
+
+          idx++;
+        }
+
+        function createOther(header, item) {
+          let index = 0;
+          const length = header.length;
+          const other = [];
+
+          while (index < length) {
+            if (header[index] !== null) {
+              other.push({
+                name: header[index],
+                price: item[index],
+              });
+            }
+
+            index++;
+          }
+
+          return other;
+        }
+        res.json({
+          data: result,
+        });
       });
     } catch (error) {
       res.status(500).json({ message: "ERROR UPLOAD FILE SYSERROR" });

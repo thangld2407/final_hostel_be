@@ -12,6 +12,28 @@ module.exports = {
       res.status(500).json({ message: error });
     }
   },
+  async getOneArea(req, res, next) {
+    const id = req.body.id;
+    try {
+      if (id) {
+        const rs = await Area.findById({ _id: id });
+        if (rs) {
+          res.status(200).json({
+            message: "get one area success full",
+            area: rs,
+          });
+        } else {
+          res.status(403).json({
+            message: "Area not found",
+          });
+        }
+      } else {
+        res.status(403).json({ message: "ERROR - YOUR MUST BE SEND AREA_ID" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "ERROR GET ONE AREA ERROR" });
+    }
+  },
   async createArea(req, res, next) {
     const { area_name } = req.body;
     try {

@@ -13,6 +13,30 @@ module.exports = {
       res.status(500).send(error);
     }
   },
+  async getOneHostel(req, res, next) {
+    const id = req.body.id;
+    try {
+      if (id) {
+        const data = await Hostel.findById({ _id: id }).populate("area_id");
+        if (data) {
+          res.status(200).json({
+            status: true,
+            message: "Get One Hostel successfully",
+            data: data,
+          });
+        } else {
+          res.status(403).json({
+            status: false,
+            message: "Couldn't find a hostel'",
+          });
+        }
+      }
+    } catch (error) {
+      res.status(500).json({
+        message: "get hostel failed",
+      });
+    }
+  },
   async createHostel(req, res) {
     const { hostel_name, address, area_id } = req.body;
     const data = new Hostel({ hostel_name, address, area_id });

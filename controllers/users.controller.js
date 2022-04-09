@@ -33,18 +33,30 @@ module.exports = {
     }
   },
   async getOneUser(req, res) {
+    const id = req.body.id;
     try {
-      const data = await User.findOne({ user_id: req.body.id });
-      console.log(data);
-      const userInfor = await userRole
-        .find({ user_id: data._id })
-        .populate("role_id")
-        .populate("user_id", "-password")
-        .lean();
-      res.status(200).json({
-        message: "success",
-        data: userInfor,
-      });
+      if (id) {
+        const data = await User.findById({ _id: id });
+        if (data) {
+          const userInfor = await userRole
+            .find({ user_id: data._id })
+            .populate("role_id")
+            .populate("user_id", "-password")
+            .lean();
+          res.status(200).json({
+            message: "success",
+            data: userInfor,
+          });
+        } else {
+          res.status(403).json({
+            message: "user not found",
+          });
+        }
+      } else {
+        res.status(403).json({
+          message: "User id not found",
+        });
+      }
     } catch (error) {
       res.status(500).json({
         message: "error",
