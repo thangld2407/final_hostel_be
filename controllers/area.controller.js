@@ -13,7 +13,7 @@ module.exports = {
     }
   },
   async getOneArea(req, res, next) {
-    const id = req.body.id;
+    const id = req.query.id;
     try {
       if (id) {
         const rs = await Area.findById({ _id: id });

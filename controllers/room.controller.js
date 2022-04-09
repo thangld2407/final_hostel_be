@@ -28,7 +28,7 @@ module.exports = {
     }
   },
   async getOneRoom(req, res, next) {
-    const id = req.params.id;
+    const id = req.query.id;
 
     try {
       const rs = await Room.findOne({ room_id: id }).populate("hostel_id");

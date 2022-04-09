@@ -33,7 +33,7 @@ module.exports = {
     }
   },
   async getOneUser(req, res) {
-    const id = req.body.id;
+    const id = req.query.id;
     try {
       if (id) {
         const data = await User.findById({ _id: id });

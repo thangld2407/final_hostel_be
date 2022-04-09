@@ -14,7 +14,7 @@ module.exports = {
     }
   },
   async getOneHostel(req, res, next) {
-    const id = req.body.id;
+    const id = req.query.id;
     try {
       if (id) {
         const data = await Hostel.findById({ _id: id }).populate("area_id");
