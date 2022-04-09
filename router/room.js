@@ -4,10 +4,12 @@ const {
   createRoom,
   deleteRoom,
   updateRoom,
+  getOneRoom,
 } = require("../controllers/room.controller");
 const roomRouter = express.Router();
 
 roomRouter.get("/room/getall", getAllRoom);
+roomRouter.get("/room/getone/:id", getOneRoom);
 roomRouter.post("/room/create", createRoom);
 roomRouter.post("/room/update", updateRoom);
 roomRouter.post("/room/delete", deleteRoom);

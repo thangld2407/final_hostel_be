@@ -34,7 +34,8 @@ module.exports = {
   },
   async getOneUser(req, res) {
     try {
-      const data = await User.findById(req.body.id);
+      const data = await User.findOne({ user_id: req.body.id });
+      console.log(data);
       const userInfor = await userRole
         .find({ user_id: data._id })
         .populate("role_id")

@@ -27,6 +27,19 @@ module.exports = {
       res.status(404).json({ message: "ERROR-UPDATE ROOM" });
     }
   },
+  async getOneRoom(req, res, next) {
+    const id = req.params.id;
+
+    try {
+      const rs = await Room.findOne({ room_id: id });
+      res.json({
+        message: "get one room successfully",
+        data: rs,
+      });
+    } catch (error) {
+      res.json({ error: "ERROR GET ONE ROOM" });
+    }
+  },
   async createRoom(req, res, next) {
     try {
       const { hostel_id, room_name, price, description, status } = req.body;
