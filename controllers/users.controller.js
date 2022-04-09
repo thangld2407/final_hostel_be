@@ -13,7 +13,8 @@ module.exports = {
         .populate("role_id")
         .populate("user_id", "-password")
         .lean();
-      if (data.user.includes(data.user_id === null)) {
+      console.log(data);
+      if (data.includes(data.user_id === null)) {
         return;
       } else {
         res.status(200).json({

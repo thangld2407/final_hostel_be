@@ -85,7 +85,7 @@ module.exports = {
         const dataPayment = new Payment({
           invoice_id: invoice._id,
           bank_code: bankCode,
-          create_date: createDate,
+          transaction_no: createDate,
         });
         dataPayment.save();
         console.log(vnpUrl);
@@ -110,9 +110,9 @@ module.exports = {
     var signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
     const invoice = await Payment.findOne({
       create_date: vnp_Params["vnp_TransactionNo"],
-    });
-    console.log(invoice);
+    }).populate("invoice_id");
 
+    const rs = await Invoice.findByIdAndUpdate({ _id: invoice });
     // đã lấy được thông tin của hoá đơn, từ hoá đơn sẽ lấy ra thông tin phòng lúc này kiểm tra nếu trạng thái thanh toán thành công thì sẽ đặt lại trạng thái phòng thành đã thanh toán
     // Nay sẽ làm tiếp phần này hoá
 

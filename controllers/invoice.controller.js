@@ -167,60 +167,61 @@ module.exports = {
       let path = req.file.path;
       readXlsxFile(path).then((rows) => {
         rows.shift();
-        const header = rows.shift();
-        function getOthers() {
-          let initHeader = [];
-          for (let i = 6; i < header.length - 1; i++) {
-            initHeader.push(header[i]);
-          }
-          return initHeader;
-        }
+        res.json({ rows });
+        // const header = rows.shift();
+        // function getOthers() {
+        //   let initHeader = [];
+        //   for (let i = 6; i < header.length - 1; i++) {
+        //     initHeader.push(header[i]);
+        //   }
+        //   return initHeader;
+        // }
+        // console.log(getOthers);
+        // function getData() {
+        //   let data = [];
+        //   console.log(rows.length);
+        //   for (let i = 1; i <= rows.length; i++) {
+        //     let tmp = rows[i].length - 1;
+        //     data.push({
+        //       hostel_name: rows[i][0],
+        //       room_name: rows[i][1],
+        //       water: rows[i][2],
+        //       electric: rows[i][3],
+        //       price_water: rows[i][4],
+        //       price_electric: rows[i][5],
+        //       // other: getOthers(),
+        //       total: rows[i][11],
 
-        function getData() {
-          let data = [];
-          console.log(rows.length);
-          for (let i = 1; i <= rows.length; i++) {
-            let tmp = rows[i].length - 1;
-            data.push({
-              hostel_name: rows[i][0],
-              room_name: rows[i][1],
-              water: rows[i][2],
-              electric: rows[i][3],
-              price_water: rows[i][4],
-              price_electric: rows[i][5],
-              // other: getOthers(),
-              total: rows[i][11],
-
-              // GET LẠI OTHER SERVICE
-            });
-          }
-          return data;
-        }
-        // rows.forEach((col, index) => {
-        //   let invoice = {
-        //     hostel_name: col[0],
-        //     room_name: col[1],
-        //     water: col[2],
-        //     electric: col[3],
-        //     price_water: col[4],
-        //     price_electric: col[5],
-        //     other: getData(),
-        //     total: col.lenght - 1,
-        //   };
-        //
-        //   invoices.push(invoice);
+        //       // GET LẠI OTHER SERVICE
+        //     });
+        //   }
+        //   return data;
+        // }
+        // // rows.forEach((col, index) => {
+        // //   let invoice = {
+        // //     hostel_name: col[0],
+        // //     room_name: col[1],
+        // //     water: col[2],
+        // //     electric: col[3],
+        // //     price_water: col[4],
+        // //     price_electric: col[5],
+        // //     other: getData(),
+        // //     total: col.lenght - 1,
+        // //   };
+        // //
+        // //   invoices.push(invoice);
+        // // });
+        // res.json({
+        //   data: getData(),
         // });
-        res.json({
-          data: getData(),
-        });
-        invoices.map(async (item) => {
-          try {
-            const hostel = await Hostel.findOne({ name: item.hostel_name });
-            // console.log(hostel);
-          } catch (error) {
-            console.log(error);
-          }
-        });
+        // invoices.map(async (item) => {
+        //   try {
+        //     const hostel = await Hostel.findOne({ name: item.hostel_name });
+        //     // console.log(hostel);
+        //   } catch (error) {
+        //     console.log(error);
+        //   }
+        // });
         // res.status(200).json({
         //   data: invoices,
         // });

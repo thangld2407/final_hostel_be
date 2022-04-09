@@ -18,7 +18,7 @@ const Payment = mongoose.Schema(
   },
   {
     timestamps: {
-      createdAt: "created_at",
+      createdAt: "createdAt",
     },
   }
 );

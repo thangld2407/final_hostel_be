@@ -7,12 +7,12 @@ const {
   deleteUser,
 } = require("../controllers/users.controller");
 
-const user = express.Router();
+const userRouter = express.Router();
 
-user.get("/user/getall", getAllUser);
-user.get("/user/getone", getOneUser);
-user.post("/user/create", createUser);
-user.post("/user/update", updateUser);
-user.post("/user/delete", deleteUser);
+userRouter.get("/user/getall", getAllUser);
+userRouter.get("/user/getone", getOneUser);
+userRouter.post("/user/create", createUser);
+userRouter.post("/user/update", updateUser);
+userRouter.post("/user/delete", deleteUser);
 
-module.exports = user;
+module.exports = userRouter;
