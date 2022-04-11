@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const hostel = require("../model/hostel");
 
 const User = require("../model/user");
 const userRole = require("../model/userRole");
@@ -13,19 +14,14 @@ module.exports = {
         .populate("role_id")
         .populate("user_id", "-password")
         .lean();
-      console.log(data);
-      if (data.includes(data.user_id === null)) {
-        return;
-      } else {
-        res.status(200).json({
-          message: "success to get all data",
-          data: {
-            user: data,
-          },
-        });
-      }
+
+      res.status(200).json({
+        message: "success to get all data",
+        data: {
+          user: data,
+        },
+      });
     } catch (err) {
-      console.log("SOOSO");
       res.status(500).json({
         message: "error",
         data: err.message,
@@ -37,6 +33,7 @@ module.exports = {
     try {
       if (id) {
         const data = await User.findById({ _id: id });
+
         if (data) {
           const userInfor = await userRole
             .find({ user_id: data._id })

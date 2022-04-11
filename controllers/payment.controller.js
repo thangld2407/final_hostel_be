@@ -26,7 +26,9 @@ module.exports = {
         message: "You must be send user_id",
       });
     } else {
-      const invoice = await Invoice.findOne({ user_id: user_id });
+      const invoice = await Invoice.findOne({ user_id: user_id }).populate(
+        "room_id"
+      );
       if (invoice.status) {
         res.status(401).json({ message: "Invoice already exists pay" });
       } else {
@@ -49,8 +51,8 @@ module.exports = {
         let amount = invoice.total;
         let bankCode = req.body.bankCode;
 
-        let orderInfo = req.body.orderDescription;
-        let orderType = req.body.orderType;
+        let orderInfo = `Payment for room ${invoice.room_id.room_name}`;
+        let orderType = "pay";
         let locale = req.body.language;
         if (locale === null || locale === "") {
           locale = "vn";
@@ -112,14 +114,29 @@ module.exports = {
       create_date: vnp_Params["vnp_TransactionNo"],
     }).populate("invoice_id");
 
-    const rs = await Invoice.findByIdAndUpdate({ _id: invoice });
+    const rs = await Invoice.findOneAndUpdate(
+      { _id: invoice.invoice_id._id },
+      { status: true }
+    ).lean();
     // đã lấy được thông tin của hoá đơn, từ hoá đơn sẽ lấy ra thông tin phòng lúc này kiểm tra nếu trạng thái thanh toán thành công thì sẽ đặt lại trạng thái phòng thành đã thanh toán
-    // Nay sẽ làm tiếp phần này hoá
 
     if (secureHash === signed) {
       var orderId = vnp_Params["vnp_TxnRef"];
       var rspCode = vnp_Params["vnp_ResponseCode"];
       //Kiem tra du lieu co hop le khong, cap nhat trang thai don hang va gui ket qua cho VNPAY theo dinh dang duoi
+      if (rspCode !== "00") {
+        res.json({
+          status: "Faild to payment",
+          response_code: rspCode,
+        });
+      } else {
+        res.json({
+          status: "success",
+          message: "You have been successfully to payment for this room",
+          order_id: orderId,
+          response_code: rspCode,
+        });
+      }
     } else {
       res.status(200).json({ RspCode: "97", Message: "Fail checksum" });
     }
