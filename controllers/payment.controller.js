@@ -90,8 +90,11 @@ module.exports = {
           transaction_no: createDate,
         });
         dataPayment.save();
-        console.log(vnpUrl);
-        res.redirect(vnpUrl);
+        res.status(200).json({
+          message: "create payment transaction successfully",
+          url: vnpUrl,
+          status: true,
+        });
       }
     }
   },
