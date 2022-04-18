@@ -15,6 +15,7 @@ const Hostel = mongoose.Schema(
     area_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Area",
+      required: true,
     },
   },
   {
