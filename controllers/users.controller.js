@@ -16,11 +16,20 @@ module.exports = {
         .populate("user_id", "-password")
         .lean();
 
+      let user = [];
+      for (el of data) {
+        const hostels = await hostel
+          .findById({ _id: el.user_id.hostel_id })
+          .populate("area_id");
+        el = {
+          ...el,
+          hostels,
+        };
+        user.push(el);
+      }
       res.status(200).json({
         message: "success to get all data",
-        data: {
-          user: data,
-        },
+        data: user,
       });
     } catch (err) {
       res.status(500).json({
@@ -33,8 +42,13 @@ module.exports = {
     const id = req.query.id;
     try {
       if (id) {
-        const dataUser = await User.findById({ _id: id }).populate('hostel_id', '-password' );
-        const dataArea = await area.findById({_id: dataUser.hostel_id.area_id}).lean()
+        const dataUser = await User.findById({ _id: id }).populate(
+          "hostel_id",
+          "-password"
+        );
+        const dataArea = await area
+          .findById({ _id: dataUser.hostel_id.area_id })
+          .lean();
         if (dataUser) {
           const dataUserInfor = await userRole
             .find({ user_id: dataUser._id })
@@ -43,11 +57,10 @@ module.exports = {
           res.status(200).json({
             message: "success",
             data: {
-                ...dataUserInfor,
-                dataUser,
-                dataArea
-              }
-            
+              ...dataUserInfor,
+              dataUser,
+              dataArea,
+            },
           });
         } else {
           res.status(403).json({
