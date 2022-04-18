@@ -6,11 +6,17 @@ module.exports = {
   async registerRoomUser(req, res, next) {
     try {
       const { user_id, room_id } = req.body;
-      const dataRoom = await Room.findOne({ room_id }).lean();
-      const dataUser = await User.findOne({ user_id }).lean();
+      const dataRoom = await Room.findById(room_id).lean();
+      const dataUser = await User.findById(user_id).lean();
+      console.log(dataUser);
       if (dataRoom.status === true) {
-        return res.status(401).json({
+        res.status(401).json({
           message: "The room already have a user",
+        });
+      } else if (dataUser === null) {
+        res.json({
+          message: "User not found ",
+          status: false,
         });
       } else {
         await Room.findOneAndUpdate(
@@ -19,13 +25,9 @@ module.exports = {
           { new: true }
         );
         const dataForRent = new RoomForRent({ user_id, room_id });
-        const rs = await dataForRent.save();
+        await dataForRent.save();
         res.status(200).json({
           message: "Register room successfully",
-          data: {
-            room: dataRoom,
-            user: dataUser.username,
-          },
         });
       }
     } catch (error) {
