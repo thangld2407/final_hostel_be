@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const area = require("../model/area");
 const hostel = require("../model/hostel");
 
 const User = require("../model/user");
@@ -32,17 +33,21 @@ module.exports = {
     const id = req.query.id;
     try {
       if (id) {
-        const data = await User.findById({ _id: id });
-
-        if (data) {
-          const userInfor = await userRole
-            .find({ user_id: data._id })
+        const dataUser = await User.findById({ _id: id }).populate('hostel_id', '-password' );
+        const dataArea = await area.findById({_id: dataUser.hostel_id.area_id}).lean()
+        if (dataUser) {
+          const dataUserInfor = await userRole
+            .find({ user_id: dataUser._id })
             .populate("role_id")
-            .populate("user_id", "-password")
             .lean();
           res.status(200).json({
             message: "success",
-            data: userInfor,
+            data: {
+                ...dataUserInfor,
+                dataUser,
+                dataArea
+              }
+            
           });
         } else {
           res.status(403).json({

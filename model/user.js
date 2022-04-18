@@ -47,6 +47,7 @@ const userSchema = new mongoose.Schema(
     },
     hostel_id: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Hostel',
       required: true,
     },
   },
