@@ -31,7 +31,7 @@ module.exports = {
     const id = req.query.id;
 
     try {
-      const rs = await Room.findOne({ room_id: id }).populate("hostel_id");
+      const rs = await Room.findById({ _id: id }).populate("hostel_id");
       res.json({
         message: "get one room successfully",
         data: rs,
