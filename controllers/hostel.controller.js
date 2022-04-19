@@ -4,7 +4,7 @@ const sendEmail = require("../utils/nodemailer");
 module.exports = {
   async getAllHostel(req, res) {
     try {
-      const rs = await Hostel.find();
+      const rs = await Hostel.find().populate("area_id");
       res.status(200).json({
         message: "get hostel successfully",
         data: rs,
