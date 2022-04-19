@@ -59,6 +59,7 @@ module.exports = {
           { status: false },
           { new: true }
         );
+        await RoomForRent.findByIdAndRemove({ _id: dataRoomRental._id });
         res.status(200).json({
           message: "cancel room successfully",
           data: dataRoomUpdate,

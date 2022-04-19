@@ -13,6 +13,7 @@ const paymentRouter = require("./payment");
 
 const router = express.Router();
 router.use(authRouter);
+router.use(paymentRouter);
 router.use(requireAuth, userRouter);
 router.use(requireAuth, roleRoute);
 router.use(requireAuth, areaRouter);
@@ -21,5 +22,4 @@ router.use(requireAuth, roomRouter);
 router.use(requireAuth, invoiceRouter);
 router.use(requireAuth, issuesRouter);
 router.use(requireAuth, roomForRent);
-router.use(requireAuth, paymentRouter);
 module.exports = router;

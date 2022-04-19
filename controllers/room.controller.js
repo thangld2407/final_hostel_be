@@ -1,5 +1,5 @@
 const Room = require("../model/room");
-
+const RoomForRent = require("../model/room_for_rent");
 module.exports = {
   async getAllRoom(req, res, next) {
     try {
@@ -18,11 +18,23 @@ module.exports = {
       const options = { new: true };
 
       const newData = req.body;
-      const rs = await Room.findByIdAndUpdate(id, newData, options);
-      res.status(200).json({
-        message: "Success to update",
-        data: rs,
-      });
+      const isRoom = await Room.findById({ _id: id });
+      console.log(isRoom);
+      const findRoom = await RoomForRent.findOne({
+        room_id: isRoom._id,
+      }).lean();
+      if (isRoom.status) {
+        await Room.findByIdAndUpdate(id, newData, options);
+        await RoomForRent.findByIdAndDelete({ _id: findRoom._id }).lean();
+
+        res.status(200).json({
+          message: "Success to update",
+        });
+      } else {
+        res.status(200).json({
+          message: "No updating",
+        });
+      }
     } catch (error) {
       res.status(404).json({ message: "ERROR-UPDATE ROOM" });
     }
