@@ -6,8 +6,8 @@ module.exports = {
   async registerRoomUser(req, res, next) {
     try {
       const { user_id, room_id } = req.body;
-      const dataRoom = await Room.findById(room_id).lean();
-      const dataUser = await User.findById(user_id).lean();
+      const dataRoom = await Room.findById({ _id: room_id }).lean();
+      const dataUser = await User.findById({ _id: user_id }).lean();
       console.log(dataUser);
       if (dataRoom.status === true) {
         res.status(401).json({
