@@ -177,7 +177,10 @@ module.exports = {
 
         while (idx < len) {
           result.push({
-            home: DATA[idx][0],
+            date: DATA[idx][0],
+            room_name: DATA[idx][1],
+            water_consumed_per_month: DATA[idx][2],
+
             other: createOther(HEADER, DATA[idx]),
           });
 
