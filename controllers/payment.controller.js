@@ -87,7 +87,7 @@ module.exports = {
         const dataPayment = new Payment({
           invoice_id: invoice._id,
           bank_code: bankCode,
-          transaction_no: createDate,
+          transaction_no: orderId,
         });
         dataPayment.save();
         res.status(200).json({
@@ -100,7 +100,6 @@ module.exports = {
   },
   async getPayment(req, res, next) {
     var vnp_Params = req.query;
-
     var secureHash = vnp_Params["vnp_SecureHash"];
 
     delete vnp_Params["vnp_SecureHash"];
@@ -113,11 +112,11 @@ module.exports = {
     var crypto = require("crypto");
     var hmac = crypto.createHmac("sha512", secretKey);
     var signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
-    const invoice = await Payment.findOne({
-      create_date: vnp_Params["vnp_TransactionNo"],
-    }).populate("invoice_id");
 
-    const rs = await Invoice.findOneAndUpdate(
+    const invoice = await Payment.findOne({
+      transaction_no: vnp_Params["vnp_TxnRef"],
+    }).populate("invoice_id");
+    await Invoice.findOneAndUpdate(
       { _id: invoice.invoice_id._id },
       { status: true }
     ).lean();
