@@ -6,9 +6,8 @@ module.exports = {
   async registerRoomUser(req, res, next) {
     try {
       const { user_id, room_id } = req.body;
-      const dataRoom = await Room.findById(room_id).lean();
-      const dataUser = await User.findById(user_id).lean();
-      console.log(dataUser);
+      const dataRoom = await Room.findById({ _id: room_id }).lean();
+      const dataUser = await User.findById({ _id: user_id }).lean();
       if (dataRoom.status === true) {
         res.status(401).json({
           message: "The room already have a user",
@@ -37,7 +36,9 @@ module.exports = {
   },
   async getAllRoomRental(req, res, next) {
     try {
-      const rent = await RoomForRent.find();
+      const rent = await RoomForRent.find()
+        .populate("user_id", "-password")
+        .populate("room_id");
       res.status(200).json({
         message: "get room for rent successfully",
         data: rent,
@@ -59,6 +60,7 @@ module.exports = {
           { status: false },
           { new: true }
         );
+        await RoomForRent.findByIdAndRemove({ _id: dataRoomRental._id });
         res.status(200).json({
           message: "cancel room successfully",
           data: dataRoomUpdate,

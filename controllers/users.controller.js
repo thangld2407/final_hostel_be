@@ -134,7 +134,7 @@ module.exports = {
             html: `
               <h3>Your email: ${email}</h3>
               <h3>Your password: ${password}</h3>
-              <a href="https://main.hostel-management-dev.software">Click here to login</a>
+              <a href="https://hostel.thangld-dev.tech/">Click here to login</a>
             `,
           });
           res.status(200).json({
