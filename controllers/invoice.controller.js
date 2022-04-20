@@ -6,6 +6,7 @@ const sendEmail = require("../utils/nodemailer");
 const { validYearMonth } = require("../utils/validation");
 const { formatPrice } = require("../utils/cash");
 const readXlsxFile = require("read-excel-file/node");
+const roomForRent = require("../model/room_for_rent");
 
 function calcualateTotalService(array) {
   const sum = array.reduce((acc, currentValue, currentIndex, arr) => {
@@ -172,7 +173,7 @@ module.exports = {
           .json({ message: "Please upload an file excel about invoice." });
       }
       let path = req.file.path;
-      readXlsxFile(path).then((rows) => {
+      readXlsxFile(path).then(async (rows) => {
         rows.shift();
         const arr = rows;
         const HEADER = arr.shift();
@@ -216,20 +217,38 @@ module.exports = {
 
           return other;
         }
-
         for (rs of result) {
-          Hostel.findOne({ hostel_name: rs.hostel_name })
-            .populate("area_id")
-            .then((response) => {
-              console.log(response);
-            })
-            .catch((e) => {
-              console.log(e);
+          const hostelFound = await Hostel.findOne({
+            hostel_name: rs.hostel_name,
+          }).populate("area_id");
+
+          const roomFound = await Room.findOne({
+            room_name: rs.room_name,
+            hostel_id: hostelFound._id,
+          });
+          const roomRent = await roomForRent.findOne({
+            room_id: roomFound._id,
+          });
+          if (roomRent !== null) {
+            const dataToSave = new Invoice({
+              room_id: roomFound._id,
+              water_consumed_per_month: rs.water,
+              electricity_consumed_per_month: rs.electric,
+              water_price: rs.price_electric,
+              electric_price: rs.price_water,
+              other_service: rs.other,
+              user_id: roomRent.user_id,
+              date_month: rs.date,
+              total: rs.total,
+              status: false,
             });
+
+            await dataToSave.save();
+            res.json({
+              data: dataToSave,
+            });
+          }
         }
-        res.json({
-          data: result,
-        });
       });
     } catch (error) {
       res.status(500).json({ message: "ERROR UPLOAD FILE SYSERROR" });
