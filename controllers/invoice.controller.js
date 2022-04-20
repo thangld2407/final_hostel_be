@@ -46,110 +46,117 @@ module.exports = {
         total,
         status,
       } = req.body;
-      const data = new Invoice({
-        room_id,
-        water_consumed_per_month,
-        electricity_consumed_per_month,
-        water_price,
-        electric_price,
-        other_service,
-        user_id,
-        date_month,
-        status,
-        total,
-      });
-      const room = await Room.findById(room_id);
-      const user = await User.findById(user_id);
-      const totalClient = calcualateTotal(
-        electricity_consumed_per_month,
-        water_consumed_per_month,
-        electric_price,
-        water_price,
-        room.price,
-        other_service
-      );
+      const room = await Room.findById({ _id: room_id });
+      const user = await User.findById({ _id: user_id });
+      if (user !== null && room !== null) {
+        const data = new Invoice({
+          room_id,
+          water_consumed_per_month,
+          electricity_consumed_per_month,
+          water_price,
+          electric_price,
+          other_service,
+          user_id,
+          date_month,
+          status,
+          total,
+        });
+        const totalClient = calcualateTotal(
+          electricity_consumed_per_month,
+          water_consumed_per_month,
+          electric_price,
+          water_price,
+          room.price,
+          other_service
+        );
 
-      if (!validYearMonth(date_month)) {
-        res.status(401).json({
-          message: "Invalid date month, you must be a valid uear month",
-        });
-      }
-      if (totalClient !== total) {
-        console.log(totalClient, "client");
-        console.log(total, "Server");
-        res.status(403).json({
-          message: "Please calculate again total before continuing",
-        });
-      } else {
-        const result = await data.save();
-        res.status(200).json({
-          message: "successfully to creata new invoice",
-          data: {
-            invoice: result,
-            room: room,
-          },
-        });
-        console.log(user);
-        sendEmail({
-          email: user.email,
-          subject: `Thông báo đóng tiền phòng tháng ${result.date_month}`,
-          html: `
-          <head>
-          <style>
-          *{
-            margin:0;
-            padding:0;
-          }
-          table {
-            width:100%;
-            border: 1px solid #333;
-            border-collapse: collapse;
-            text-align: left;
-            color: #333;
-          }
-          tr {
-            border: 1px solid #333;
-          }
+        if (!validYearMonth(date_month)) {
+          res.status(401).json({
+            message: "Invalid date month, you must be a valid uear month",
+          });
+        }
+        if (totalClient !== total) {
+          console.log(totalClient, "client");
+          console.log(total, "Server");
+          res.status(403).json({
+            message: "Please calculate again total before continuing",
+          });
+        } else {
+          const result = await data.save();
+          res.status(200).json({
+            message: "successfully to creata new invoice",
+            data: {
+              invoice: result,
+              room: room,
+            },
+          });
+          console.log(user);
+          sendEmail({
+            email: user.email,
+            subject: `Thông báo đóng tiền phòng tháng ${result.date_month}`,
+            html: `
+            <head>
+            <style>
+            *{
+              margin:0;
+              padding:0;
+            }
+            table {
+              width:100%;
+              border: 1px solid #333;
+              border-collapse: collapse;
+              text-align: left;
+              color: #333;
+            }
+            tr {
+              border: 1px solid #333;
+            }
+            
+            td {
+              background-color: #9fb4ff;
+            }
           
-          td {
-            background-color: #9fb4ff;
-          }
-        
-          </style>
-
-          </head>
-        <table>
-        <thead></thead>
-        <tbody>
-          <tr>
-            <td>RoomNo</td>
-            <td>${room.room_name}</td>
-          </tr>
-          <tr>
-            <td>Price(VND)</td>
-            <td>${formatPrice(room.price)}</td>
-          </tr>
-          <tr>
-            <td>Water Used(M3)</td>
-            <td>${result.water_consumed_per_month}</td>
-          </tr>
-          <tr>
-            <td>Electric Used(KW)</td>
-            <td>${result.electricity_consumed_per_month}</td>
-          </tr>
-          <tr>
-            <td>Other Services(VND)</td>
-            <td>${formatPrice(
-              calcualateTotalService(result.other_service)
-            )}</td>
-          </tr>
-          <tr>
-            <td>Total(VND)</td>
-            <td>${formatPrice(result.total)}</td>
-          </tr>
-        </tbody>
-      </table>
-          `,
+            </style>
+  
+            </head>
+          <table>
+          <thead></thead>
+          <tbody>
+            <tr>
+              <td>RoomNo</td>
+              <td>${room.room_name}</td>
+            </tr>
+            <tr>
+              <td>Price(VND)</td>
+              <td>${formatPrice(room.price)}</td>
+            </tr>
+            <tr>
+              <td>Water Used(M3)</td>
+              <td>${result.water_consumed_per_month}</td>
+            </tr>
+            <tr>
+              <td>Electric Used(KW)</td>
+              <td>${result.electricity_consumed_per_month}</td>
+            </tr>
+            <tr>
+              <td>Other Services(VND)</td>
+              <td>${formatPrice(
+                calcualateTotalService(result.other_service)
+              )}</td>
+            </tr>
+            <tr>
+              <td>Total(VND)</td>
+              <td>${formatPrice(result.total)}</td>
+            </tr>
+          </tbody>
+        </table>
+            `,
+          });
+        }
+      } else {
+        res.status(403).json({
+          message: "User or Room not found",
+          status: false,
         });
       }
     } catch (error) {
@@ -176,17 +183,21 @@ module.exports = {
         const result = [];
 
         while (idx < len) {
+          const length = DATA[idx].length;
           result.push({
             date: DATA[idx][0],
-            room_name: DATA[idx][1],
-            water_consumed_per_month: DATA[idx][2],
-
+            hostel_name: DATA[idx][1],
+            room_name: DATA[idx][2],
+            water: DATA[idx][3],
+            electric: DATA[idx][4],
+            price_water: DATA[idx][5],
+            price_electric: DATA[idx][6],
             other: createOther(HEADER, DATA[idx]),
+            total: DATA[idx][length - 1],
           });
 
           idx++;
         }
-
         function createOther(header, item) {
           let index = 0;
           const length = header.length;
@@ -204,6 +215,17 @@ module.exports = {
           }
 
           return other;
+        }
+
+        for (rs of result) {
+          Hostel.findOne({ hostel_name: rs.hostel_name })
+            .populate("area_id")
+            .then((response) => {
+              console.log(response);
+            })
+            .catch((e) => {
+              console.log(e);
+            });
         }
         res.json({
           data: result,
