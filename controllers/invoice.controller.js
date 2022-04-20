@@ -229,7 +229,12 @@ module.exports = {
           const roomRent = await roomForRent.findOne({
             room_id: roomFound._id,
           });
+
           if (roomRent !== null) {
+            const userFound = await Invoice.findOne({
+              user_id: roomRent.user_id,
+              date_month: rs.date,
+            });
             const dataToSave = new Invoice({
               room_id: roomFound._id,
               water_consumed_per_month: rs.water,
@@ -242,11 +247,18 @@ module.exports = {
               total: rs.total,
               status: false,
             });
-
-            await dataToSave.save();
-            res.json({
-              data: dataToSave,
-            });
+            if (!userFound) {
+              await dataToSave.save();
+              res.json({
+                data: dataToSave,
+                message: "Upload invoice successfuly",
+              });
+            } else {
+              res.json({
+                message: "Some user has already in this month",
+                status: false,
+              });
+            }
           }
         }
       });
