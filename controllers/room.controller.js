@@ -23,18 +23,14 @@ module.exports = {
       const findRoom = await RoomForRent.findOne({
         room_id: isRoom._id,
       }).lean();
-      if (isRoom.status) {
-        await Room.findByIdAndUpdate(id, newData, options);
-        await RoomForRent.findByIdAndDelete({ _id: findRoom._id }).lean();
 
-        res.status(200).json({
-          message: "Success to update",
-        });
-      } else {
-        res.status(200).json({
-          message: "No updating",
-        });
+      await Room.findByIdAndUpdate(id, newData, options);
+      if (findRoom) {
+        await RoomForRent.findByIdAndDelete({ _id: findRoom._id }).lean();
       }
+      res.status(200).json({
+        message: "Success to update",
+      });
     } catch (error) {
       res.status(404).json({ message: "ERROR-UPDATE ROOM" });
     }
