@@ -37,7 +37,15 @@ module.exports = {
         .populate("user_id", "-password")
         .populate("room_id")
         .lean();
-      res.status(200).json({ request: response });
+      if (response === null) {
+        res.status(200).json({
+          message: "Request not found",
+          status: false
+        })
+      } else {
+
+        res.status(200).json({ request: response, message: "get detail request success", status: true });
+      }
     } catch (error) {
       res.status(403).json({ error: "ERROR DETAIL ONE REGISTER" });
     }
