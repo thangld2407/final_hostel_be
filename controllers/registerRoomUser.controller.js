@@ -18,12 +18,7 @@ module.exports = {
           status: false,
         });
       } else {
-        const rs = await Room.findOneAndUpdate(
-          { room_id },
-          { status: true },
-          { new: true }
-        );
-        console.log(rs);
+        await Room.findByIdAndUpdate(room_id, { status: true });
         const dataForRent = new RoomForRent({ user_id, room_id });
         await dataForRent.save();
         res.status(200).json({
