@@ -5,7 +5,7 @@ const sendEmail = require("../utils/nodemailer");
 module.exports = {
   async getAllIssues(req, res, next) {
     try {
-      const rs = await Issues.find().lean();
+      const rs = await Issues.find().populate('user_id', '-password').lean();
 
       res
         .status(200)
