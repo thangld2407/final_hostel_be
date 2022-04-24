@@ -30,6 +30,18 @@ module.exports = {
       res.json({ error: "ERRORR - REGISTER_ROOM_USER" });
     }
   },
+  async getDetailRegisterRoom(req, res, next) {
+    try {
+      const request_id = req.query.request_id;
+      const response = await RoomForRent.findById({ _id: request_id })
+        .populate("user_id", "-password")
+        .populate("room_id")
+        .lean();
+      res.status(200).json({ request: response });
+    } catch (error) {
+      res.status(403).json({ error: "ERROR DETAIL ONE REGISTER" });
+    }
+  },
   async getAllRoomRental(req, res, next) {
     try {
       const rent = await RoomForRent.find()
