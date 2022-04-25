@@ -40,11 +40,15 @@ module.exports = {
 
     try {
       const request = await RoomForRent.findOne({ room_id: id }).populate('user_id', '-password').populate('room_id').lean();
-      const rs = await Room.findById({ _id: id }).populate("hostel_id");
+      const room_id = await Room.findById({ _id: id }).populate("hostel_id").lean();
+      let user_id = {}
       if (request === null) {
         res.status(200).json({
           message: "get one room successfully",
-          data: rs,
+          data: {
+            room_id: room_id,
+            user_id: user_id
+          }
         })
       } else {
         res.status(200).json({
