@@ -184,10 +184,7 @@ module.exports = {
             room_name: DATA[idx][2],
             water: DATA[idx][3],
             electric: DATA[idx][4],
-            price_water: DATA[idx][5],
-            price_electric: DATA[idx][6],
             other: createOther(HEADER, DATA[idx]),
-            total: DATA[idx][length - 1],
           });
 
           idx++;
@@ -210,17 +207,18 @@ module.exports = {
 
           return other;
         }
+
         for (rs of result) {
           const hostelFound = await Hostel.findOne({
             hostel_name: rs.hostel_name,
           }).populate("area_id");
-
           const roomFound = await Room.findOne({
             room_name: rs.room_name,
             hostel_id: hostelFound._id,
           });
           const roomRent = await roomForRent.findOne({
             room_id: roomFound._id,
+
           });
 
           if (roomRent !== null) {
@@ -232,12 +230,12 @@ module.exports = {
               room_id: roomFound._id,
               water_consumed_per_month: rs.water,
               electricity_consumed_per_month: rs.electric,
-              water_price: rs.price_electric,
-              electric_price: rs.price_water,
+              water_price: hostelFound.price_water,
+              electric_price: hostelFound.price_electric,
               other_service: rs.other,
               user_id: roomRent.user_id,
               date_month: rs.date,
-              total: rs.total,
+              total: calcualateTotal(rs.electric, rs.water, hostelFound.price_electric, hostelFound.price_water, roomFound.price, rs.other),
               status: false,
             });
             if (!userFound) {
