@@ -66,8 +66,8 @@ module.exports = {
   async cancelRoomRental(req, res) {
     try {
       const id = req.body.room_rental_id;
-      const dataRoomRental = await RoomForRent.findOne({ id });
-      const dataRoom = await Room.findOne(dataRoomRental.room_id);
+      const dataRoomRental = await RoomForRent.findById({ _id: id });
+      const dataRoom = await Room.findById({ _id: dataRoomRental.room_id });
       if (!dataRoom.status) {
         res.status(401).json({ message: "Room not found, please try again" });
       } else {
