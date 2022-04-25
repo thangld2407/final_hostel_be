@@ -39,23 +39,19 @@ module.exports = {
         room_id,
         water_consumed_per_month,
         electricity_consumed_per_month,
-        water_price,
-        electric_price,
         other_service,
         user_id,
         date_month,
         total,
         status,
       } = req.body;
-      const room = await Room.findById({ _id: room_id });
+      const room = await Room.findById({ _id: room_id }).populate('hostel_id');
       const user = await User.findById({ _id: user_id });
       if (user !== null && room !== null) {
         const data = new Invoice({
           room_id,
           water_consumed_per_month,
           electricity_consumed_per_month,
-          water_price,
-          electric_price,
           other_service,
           user_id,
           date_month,
@@ -65,20 +61,17 @@ module.exports = {
         const totalClient = calcualateTotal(
           electricity_consumed_per_month,
           water_consumed_per_month,
-          electric_price,
-          water_price,
+          room.hostel_id.price_water,
+          room.hostel_id.price_electric,
           room.price,
           other_service
         );
-
         if (!validYearMonth(date_month)) {
           res.status(401).json({
             message: "Invalid date month, you must be a valid uear month",
           });
         }
         if (totalClient !== total) {
-          console.log(totalClient, "client");
-          console.log(total, "Server");
           res.status(403).json({
             message: "Please calculate again total before continuing",
           });
@@ -142,8 +135,8 @@ module.exports = {
             <tr>
               <td>Other Services(VND)</td>
               <td>${formatPrice(
-                calcualateTotalService(result.other_service)
-              )}</td>
+              calcualateTotalService(result.other_service)
+            )}</td>
             </tr>
             <tr>
               <td>Total(VND)</td>
