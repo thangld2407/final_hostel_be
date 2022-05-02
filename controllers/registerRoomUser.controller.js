@@ -5,7 +5,7 @@ const User = require("../model/user");
 module.exports = {
   async registerRoomUser(req, res, next) {
     try {
-      const { user_id, room_id } = req.body;
+      const { user_id, room_id, date } = req.body;
       const dataRoom = await Room.findById({ _id: room_id }).lean();
       const dataUser = await User.findById({ _id: user_id }).lean();
       if (dataRoom.status === true) {
@@ -19,7 +19,7 @@ module.exports = {
         });
       } else {
         await Room.findByIdAndUpdate(room_id, { status: true });
-        const dataForRent = new RoomForRent({ user_id, room_id });
+        const dataForRent = new RoomForRent({ user_id, room_id, date });
         await dataForRent.save();
         res.status(200).json({
           message: "Register room successfully",

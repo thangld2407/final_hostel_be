@@ -29,10 +29,6 @@ const userSchema = new mongoose.Schema(
       required: false,
       type: Number,
     },
-    rental_date: {
-      required: false,
-      type: String,
-    },
     username: {
       type: String,
       required: true,
