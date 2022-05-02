@@ -218,37 +218,44 @@ module.exports = {
           });
           const roomRent = await roomForRent.findOne({
             room_id: roomFound._id,
-
           });
-
           if (roomRent !== null) {
+            const dateFormat = new Date(rs.date).toLocaleDateString();
             const userFound = await Invoice.findOne({
               user_id: roomRent.user_id,
               date_month: rs.date,
             });
-            const dataToSave = new Invoice({
-              room_id: roomFound._id,
-              water_consumed_per_month: rs.water,
-              electricity_consumed_per_month: rs.electric,
-              water_price: hostelFound.price_water,
-              electric_price: hostelFound.price_electric,
-              other_service: rs.other,
-              user_id: roomRent.user_id,
-              date_month: rs.date,
-              total: calcualateTotal(rs.electric, rs.water, hostelFound.price_electric, hostelFound.price_water, roomFound.price, rs.other),
-              status: false,
-            });
-            if (!userFound) {
-              await dataToSave.save();
-              res.json({
-                data: dataToSave,
-                message: "Upload invoice successfuly",
-              });
+            const isInvoiced = await Invoice.findOne({ date_month: dateFormat.slice(2) }, { room_id: roomRent.room_id });
+            if (isInvoiced) {
+              res.status(402).json({
+                message: "Invoice already exists",
+                status: false,
+              })
             } else {
-              res.json({
-                message: "Some user has already in this month",
+              const dataToSave = new Invoice({
+                room_id: roomFound._id,
+                water_consumed_per_month: rs.water,
+                electricity_consumed_per_month: rs.electric,
+                water_price: hostelFound.price_water,
+                electric_price: hostelFound.price_electric,
+                other_service: rs.other,
+                user_id: roomRent.user_id,
+                date_month: dateFormat.slice(2),
+                total: calcualateTotal(rs.electric, rs.water, hostelFound.price_electric, hostelFound.price_water, roomFound.price, rs.other),
                 status: false,
               });
+              if (!userFound) {
+                await dataToSave.save();
+                res.json({
+                  data: dataToSave,
+                  message: "Upload invoice successfuly",
+                });
+              } else {
+                res.json({
+                  message: "Some user has already in this month",
+                  status: false,
+                });
+              }
             }
           }
         }
@@ -273,4 +280,26 @@ module.exports = {
       });
     }
   },
+  async getInvoiceByUser(req, res, next) {
+    try {
+      const { user_id } = req.body;
+      const response = await Invoice.find(({ user_id: user_id }));
+      if (response.length !== 0) {
+        res.status(200).json({
+          status: 'success',
+          data: response
+        })
+      } else {
+        res.status(404).json({
+          message: "No invoice found for user",
+          status: false
+        })
+      }
+    } catch (error) {
+      res.status(400).json({
+        message: "Error get invoice user",
+        status: "Internal Server Error"
+      })
+    }
+  }
 };
