@@ -8,22 +8,28 @@ module.exports = {
       const { user_id, room_id, date } = req.body;
       const dataRoom = await Room.findById({ _id: room_id }).lean();
       const dataUser = await User.findById({ _id: user_id }).lean();
-      if (dataRoom.status === true) {
-        res.status(401).json({
-          message: "The room already have a user",
-        });
-      } else if (dataUser === null) {
-        res.json({
-          message: "User not found ",
-          status: false,
-        });
+      if (!date) {
+        res.status(403).json({ error: "Invalid date" })
       } else {
-        await Room.findByIdAndUpdate(room_id, { status: true });
-        const dataForRent = new RoomForRent({ user_id, room_id, date });
-        await dataForRent.save();
-        res.status(200).json({
-          message: "Register room successfully",
-        });
+        if (dataRoom.status === true) {
+          res.status(401).json({
+            message: "The room already have a user",
+          });
+        } else if (dataUser === null) {
+          res.json({
+            message: "User not found ",
+            status: false,
+          });
+        } else {
+
+          await Room.findByIdAndUpdate(room_id, { status: true });
+          const dataForRent = new RoomForRent({ user_id, room_id, date });
+          await dataForRent.save();
+          res.status(200).json({
+            message: "Register room successfully",
+          });
+
+        }
       }
     } catch (error) {
       console.log(error);
