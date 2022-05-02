@@ -38,8 +38,8 @@ module.exports = {
     }
   },
   async createHostel(req, res) {
-    const { hostel_name, address, area_id } = req.body;
-    const data = new Hostel({ hostel_name, address, area_id });
+    const { hostel_name, address, area_id, price_water, price_electric } = req.body;
+    const data = new Hostel({ hostel_name, address, area_id, price_water, price_electric });
     try {
       let isHostel = await Hostel.findOne({ hostel_name });
       if (isHostel) {

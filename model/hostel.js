@@ -12,6 +12,16 @@ const Hostel = mongoose.Schema(
       trim: true,
       required: true,
     },
+    price_water: {
+      type: Number,
+      trim: true,
+      required: true,
+    },
+    price_electric: {
+      type: Number,
+      trim: true,
+      required: true,
+    },
     area_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Area",

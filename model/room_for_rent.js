@@ -12,6 +12,10 @@ const RoomForRent = mongoose.Schema(
       required: true,
       ref: "Room",
     },
+    date: {
+      type: Date,
+      required: true,
+    }
   },
   {
     timestamps: {

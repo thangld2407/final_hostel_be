@@ -15,7 +15,6 @@ module.exports = {
         .populate("role_id")
         .populate("user_id", "-password")
         .lean();
-
       let user = [];
       for (el of data) {
         const hostels = await hostel

@@ -3,7 +3,7 @@ const RoomForRent = require("../model/room_for_rent");
 module.exports = {
   async getAllRoom(req, res, next) {
     try {
-      const rs = await Room.find();
+      const rs = await Room.find().populate('hostel_id');
       res.status(200).json({
         message: "get all room succesfully",
         data: rs,
@@ -23,18 +23,14 @@ module.exports = {
       const findRoom = await RoomForRent.findOne({
         room_id: isRoom._id,
       }).lean();
-      if (isRoom.status) {
-        await Room.findByIdAndUpdate(id, newData, options);
-        await RoomForRent.findByIdAndDelete({ _id: findRoom._id }).lean();
 
-        res.status(200).json({
-          message: "Success to update",
-        });
-      } else {
-        res.status(200).json({
-          message: "No updating",
-        });
+      await Room.findByIdAndUpdate(id, newData, options);
+      if (findRoom) {
+        await RoomForRent.findByIdAndDelete({ _id: findRoom._id }).lean();
       }
+      res.status(200).json({
+        message: "Success to update",
+      });
     } catch (error) {
       res.status(404).json({ message: "ERROR-UPDATE ROOM" });
     }
@@ -43,11 +39,18 @@ module.exports = {
     const id = req.query.id;
 
     try {
-      const rs = await Room.findById({ _id: id }).populate("hostel_id");
-      res.json({
+      const request = await RoomForRent.findOne({ room_id: id }).populate('user_id', '-password').lean();
+      const room_id = await Room.findById({ _id: id }).populate("hostel_id").lean();
+      let user_id = {}
+      res.status(200).json({
         message: "get one room successfully",
-        data: rs,
-      });
+        data: {
+          room: room_id,
+          user: user_id,
+          request: request
+        }
+      })
+
     } catch (error) {
       res.json({ error: "ERROR GET ONE ROOM" });
     }

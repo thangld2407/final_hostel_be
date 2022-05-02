@@ -17,16 +17,7 @@ const Invoice = mongoose.Schema(
       required: true,
       trim: true,
     },
-    water_price: {
-      type: Number,
-      required: true,
-      trim: true,
-    },
-    electric_price: {
-      type: Number,
-      required: true,
-      trim: true,
-    },
+
     other_service: {
       type: Array,
       trim: false,
