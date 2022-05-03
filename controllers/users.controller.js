@@ -20,8 +20,14 @@ module.exports = {
           .populate("role_id")
           .populate("user_id", "-password")
           .lean();
-      } else {
+      } else if (role) {
         data = await UserRole.find(({ role_id: role }))
+          .populate("role_id")
+          .populate("user_id", "-password")
+          .lean();
+      }
+      else {
+        data = await UserRole.find()
           .populate("role_id")
           .populate("user_id", "-password")
           .lean();
