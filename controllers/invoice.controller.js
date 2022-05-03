@@ -161,7 +161,7 @@ module.exports = {
     }
   },
   async uploadInvoiceByExcel(req, res, next) {
-    let countIndex;
+    let countIndex = 0;
     try {
       if (!req.file) {
         return res
@@ -215,116 +215,124 @@ module.exports = {
           const hostelFound = await Hostel.findOne({
             hostel_name: rs.hostel_name,
           }).populate("area_id");
+          console.log(rs.room_name, hostelFound._id)
           const roomFound = await Room.findOne({
             room_name: rs.room_name,
             hostel_id: hostelFound._id,
-          });
+          }).lean();
+          if (roomFound) {
 
-          const roomRent = await roomForRent.findOne({
-            room_id: roomFound._id,
-          }).populate("user_id", "-password");
-          if (roomRent !== null) {
-            const dateFormat = new Date(rs.date).toLocaleDateString();
-            const userFound = await Invoice.findOne({
-              user_id: roomRent.user_id,
-              date_month: rs.date,
-            });
-
-            const isInvoiced = await Invoice.findOne({ date_month: dateFormat.slice(2) }, { room_id: roomRent.room_id });
-            if (isInvoiced) {
-              res.status(402).json({
-                message: "Invoice already exists",
-                status: false,
-              })
-            } else {
-              const dataToSave = new Invoice({
-                room_id: roomFound._id,
-                water_consumed_per_month: rs.water,
-                electricity_consumed_per_month: rs.electric,
-                water_price: hostelFound.price_water,
-                electric_price: hostelFound.price_electric,
-                other_service: rs.other,
+            const roomRent = await roomForRent.findOne({
+              room_id: roomFound._id,
+            }).populate("user_id", "-password");
+            if (roomRent !== null) {
+              const dateFormat = new Date(rs.date).toLocaleDateString();
+              const userFound = await Invoice.findOne({
                 user_id: roomRent.user_id,
-                date_month: dateFormat.slice(2),
-                total: calcualateTotal(rs.electric, rs.water, hostelFound.price_electric, hostelFound.price_water, roomFound.price, rs.other),
-                status: false,
+                date_month: rs.date,
               });
-              if (!userFound) {
-                await dataToSave.save();
-                countIndex++;
-                sendEmail({
-                  email: roomRent.user_id.email,
-                  subject: `Thông báo đóng tiền phòng tháng ${roomRent.date}`,
-                  html: `
-                  <head>
-                  <style>
-                  *{
-                    margin:0;
-                    padding:0;
-                  }
-                  table {
-                    width:100%;
-                    border: 1px solid #333;
-                    border-collapse: collapse;
-                    text-align: left;
-                    color: #333;
-                  }
-                  tr {
-                    border: 1px solid #333;
-                  }
 
-                  td {
-                    background-color: #9fb4ff;
-                  }
-
-                  </style>
-
-                  </head>
-                <table>
-                <thead></thead>
-                <tbody>
-                  <tr>
-                    <td>RoomNo</td>
-                    <td>${rs.room_name}</td>
-                  </tr>
-                  <tr>
-                    <td>Price(VND)</td>
-                    <td>${formatPrice(roomFound.price)}</td>
-                  </tr>
-                  <tr>
-                    <td>Water Used(M3)</td>
-                    <td>${rs.water}</td>
-                  </tr>
-                  <tr>
-                    <td>Electric Used(KW)</td>
-                    <td>${rs.electric}</td>
-                  </tr>
-                  <tr>
-                    <td>Other Services(VND)</td>
-                    <td>${formatPrice(
-                    calcualateTotalService(rs.other)
-                  )}</td>
-                  </tr>
-                  <tr>
-                    <td>Total(VND)</td>
-                    <td>${formatPrice(dataToSave.total)}</td>
-                  </tr>
-                </tbody>
-              </table>
-                  `,
-                });
+              const isInvoiced = await Invoice.findOne({ date_month: dateFormat.slice(2) }, { room_id: roomRent.room_id });
+              if (isInvoiced) {
+                res.status(402).json({
+                  message: "Invoice already exists",
+                  status: false,
+                })
               } else {
-                res.json({
-                  message: "Some user has already in this month",
+                const dataToSave = new Invoice({
+                  room_id: roomFound._id,
+                  water_consumed_per_month: rs.water,
+                  electricity_consumed_per_month: rs.electric,
+                  water_price: hostelFound.price_water,
+                  electric_price: hostelFound.price_electric,
+                  other_service: rs.other,
+                  user_id: roomRent.user_id,
+                  date_month: dateFormat.slice(2),
+                  total: calcualateTotal(rs.electric, rs.water, hostelFound.price_electric, hostelFound.price_water, roomFound.price, rs.other, roomFound.service),
                   status: false,
                 });
+                if (!userFound) {
+                  await dataToSave.save();
+                  countIndex++;
+                  sendEmail({
+                    email: roomRent.user_id.email,
+                    subject: `Thông báo đóng tiền phòng tháng ${roomRent.date}`,
+                    html: `
+                    <head>
+                    <style>
+                    *{
+                      margin:0;
+                      padding:0;
+                    }
+                    table {
+                      width:100%;
+                      border: 1px solid #333;
+                      border-collapse: collapse;
+                      text-align: left;
+                      color: #333;
+                    }
+                    tr {
+                      border: 1px solid #333;
+                    }
+  
+                    td {
+                      background-color: #9fb4ff;
+                    }
+  
+                    </style>
+  
+                    </head>
+                  <table>
+                  <thead></thead>
+                  <tbody>
+                    <tr>
+                      <td>RoomNo</td>
+                      <td>${rs.room_name}</td>
+                    </tr>
+                    <tr>
+                      <td>Price(VND)</td>
+                      <td>${formatPrice(roomFound.price)}</td>
+                    </tr>
+                    <tr>
+                      <td>Water Used(M3)</td>
+                      <td>${rs.water}</td>
+                    </tr>
+                    <tr>
+                      <td>Electric Used(KW)</td>
+                      <td>${rs.electric}</td>
+                    </tr>
+                    <tr>
+                      <td>Other Services(VND)</td>
+                      <td>${formatPrice(
+                      calcualateTotalService(rs.other)
+                    )}</td>
+                    </tr>
+                    <tr>
+                      <td>Total(VND)</td>
+                      <td>${formatPrice(dataToSave.total)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                    `,
+                  });
+
+                } else {
+                  res.json({
+                    message: "Some user has already in this month",
+                    status: false,
+                  });
+                }
               }
             }
+          } else {
+            res.status(403).json({
+              message: "Room not found"
+            })
           }
         }
+        console.log(result.length)
         if (countIndex === result.length) {
           res.json({
-            data: dataToSave,
             message: "Upload invoice successfuly",
           });
         }
