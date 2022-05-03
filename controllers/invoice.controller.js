@@ -14,9 +14,10 @@ function calcualateTotalService(array) {
   }, 0);
   return sum;
 }
-function calcualateTotal(e, w, pe, pw, pr, other_service) {
+function calcualateTotal(e, w, pe, pw, pr, other_service, service) {
   const totalService = calcualateTotalService(other_service);
-  const totalPrice = pr + e * pe + pw * w + totalService;
+  const totalServiceInRoom = calcualateTotalService(service)
+  const totalPrice = pr + e * pe + pw * w + totalService + totalServiceInRoom;
   return totalPrice;
 }
 
@@ -64,7 +65,8 @@ module.exports = {
           room.hostel_id.price_water,
           room.hostel_id.price_electric,
           room.price,
-          other_service
+          other_service,
+          room.service
         );
         if (!validYearMonth(date_month)) {
           res.status(401).json({
@@ -159,6 +161,7 @@ module.exports = {
     }
   },
   async uploadInvoiceByExcel(req, res, next) {
+    let countIndex;
     try {
       if (!req.file) {
         return res
@@ -216,15 +219,17 @@ module.exports = {
             room_name: rs.room_name,
             hostel_id: hostelFound._id,
           });
+
           const roomRent = await roomForRent.findOne({
             room_id: roomFound._id,
-          });
+          }).populate("user_id", "-password");
           if (roomRent !== null) {
             const dateFormat = new Date(rs.date).toLocaleDateString();
             const userFound = await Invoice.findOne({
               user_id: roomRent.user_id,
               date_month: rs.date,
             });
+
             const isInvoiced = await Invoice.findOne({ date_month: dateFormat.slice(2) }, { room_id: roomRent.room_id });
             if (isInvoiced) {
               res.status(402).json({
@@ -246,9 +251,67 @@ module.exports = {
               });
               if (!userFound) {
                 await dataToSave.save();
-                res.json({
-                  data: dataToSave,
-                  message: "Upload invoice successfuly",
+                countIndex++;
+                sendEmail({
+                  email: roomRent.user_id.email,
+                  subject: `Thông báo đóng tiền phòng tháng ${roomRent.date}`,
+                  html: `
+                  <head>
+                  <style>
+                  *{
+                    margin:0;
+                    padding:0;
+                  }
+                  table {
+                    width:100%;
+                    border: 1px solid #333;
+                    border-collapse: collapse;
+                    text-align: left;
+                    color: #333;
+                  }
+                  tr {
+                    border: 1px solid #333;
+                  }
+
+                  td {
+                    background-color: #9fb4ff;
+                  }
+
+                  </style>
+
+                  </head>
+                <table>
+                <thead></thead>
+                <tbody>
+                  <tr>
+                    <td>RoomNo</td>
+                    <td>${rs.room_name}</td>
+                  </tr>
+                  <tr>
+                    <td>Price(VND)</td>
+                    <td>${formatPrice(roomFound.price)}</td>
+                  </tr>
+                  <tr>
+                    <td>Water Used(M3)</td>
+                    <td>${rs.water}</td>
+                  </tr>
+                  <tr>
+                    <td>Electric Used(KW)</td>
+                    <td>${rs.electric}</td>
+                  </tr>
+                  <tr>
+                    <td>Other Services(VND)</td>
+                    <td>${formatPrice(
+                    calcualateTotalService(rs.other)
+                  )}</td>
+                  </tr>
+                  <tr>
+                    <td>Total(VND)</td>
+                    <td>${formatPrice(dataToSave.total)}</td>
+                  </tr>
+                </tbody>
+              </table>
+                  `,
                 });
               } else {
                 res.json({
@@ -259,7 +322,14 @@ module.exports = {
             }
           }
         }
+        if (countIndex === result.length) {
+          res.json({
+            data: dataToSave,
+            message: "Upload invoice successfuly",
+          });
+        }
       });
+
     } catch (error) {
       res.status(500).json({ message: "ERROR UPLOAD FILE SYSERROR" });
     }

@@ -57,14 +57,16 @@ module.exports = {
   },
   async createRoom(req, res, next) {
     try {
-      const { hostel_id, room_name, price, description, status } = req.body;
+      const { hostel_id, room_name, price, description, status, service } = req.body;
       const data = new Room({
         hostel_id,
         room_name,
         price,
         description,
+        service,
         status,
       });
+
       const isRoom = await Room.findOne({ room_name });
       if (isRoom) {
         res.status(401).json({
