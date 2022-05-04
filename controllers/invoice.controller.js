@@ -29,16 +29,30 @@ function calcualateTotal(e, w, pe, pw, pr, other_service, service) {
 
 module.exports = {
   getAllInvoice(req, res, next) {
-    Invoice.find()
-      .then((rs) => {
-        res.status(200).json({
-          message: "get all invoice successfully",
-          data: rs,
+    const { date } = req.query;
+    if (date) {
+      Invoice.find({ date_month: req.query.date })
+        .then((rs) => {
+          res.status(200).json({
+            message: "get all invoice successfully",
+            data: rs,
+          });
+        })
+        .catch((err) => {
+          res.status(500).json({ message: err });
         });
-      })
-      .catch((err) => {
-        res.status(500).json({ message: err });
-      });
+    } else {
+      Invoice.find()
+        .then((rs) => {
+          res.status(200).json({
+            message: "get all invoice successfully",
+            data: rs,
+          });
+        })
+        .catch((err) => {
+          res.status(500).json({ message: err });
+        });
+    }
   },
   async createNewInvoice(req, res, next) {
     try {
