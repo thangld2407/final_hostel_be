@@ -267,7 +267,9 @@ module.exports = {
                 countIndex++;
                 sendEmail({
                   email: roomRent.user_id.email,
-                  subject: `Thông báo đóng tiền phòng tháng ${roomRent.date}`,
+                  subject: `Thông báo đóng tiền phòng ${
+                    rs.room_name
+                  } tháng ${new Date(rs.date).toLocaleDateString().slice(2)}`,
                   html: `
                     <head>
                     <style>
