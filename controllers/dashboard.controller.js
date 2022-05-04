@@ -12,13 +12,13 @@ function calculate(array) {
 module.exports = {
   async getTurnoverByMonth(req, res, next) {
     try {
-      const { y_month } = req.query;
-      if (!y_month) {
+      const { date } = req.query;
+      if (!date) {
         res.status(403).json({
           message: "cannot find ",
         });
       } else {
-        const data = await Invoice.find({ date_month: y_month });
+        const data = await Invoice.find({ date_month: date });
         const sum = data.reduce((acc, currentValue, currentIndex, arr) => {
           console.log(acc, currentValue);
           return acc + currentValue.total;
