@@ -10,11 +10,28 @@ const { validEmail, validPassword } = require("../utils/validation");
 
 module.exports = {
   async getAllUser(req, res) {
+    let data;
     try {
-      const data = await UserRole.find()
-        .populate("role_id")
-        .populate("user_id", "-password")
-        .lean();
+      const { fullname, role } = req.query;
+      const name = await User.findOne(({ fullname: fullname })).lean();
+
+      if (fullname) {
+        data = await UserRole.find(({ user_id: name._id }))
+          .populate("role_id")
+          .populate("user_id", "-password")
+          .lean();
+      } else if (role) {
+        data = await UserRole.find(({ role_id: role }))
+          .populate("role_id")
+          .populate("user_id", "-password")
+          .lean();
+      }
+      else {
+        data = await UserRole.find()
+          .populate("role_id")
+          .populate("user_id", "-password")
+          .lean();
+      }
       let user = [];
       for (el of data) {
         const hostels = await hostel

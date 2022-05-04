@@ -41,13 +41,11 @@ module.exports = {
     try {
       const request = await RoomForRent.findOne({ room_id: id }).populate('user_id', '-password').lean();
       const room_id = await Room.findById({ _id: id }).populate("hostel_id").lean();
-      let user_id = {}
       res.status(200).json({
         message: "get one room successfully",
         data: {
           room: room_id,
-          user: user_id,
-          request: request
+          request: request || { user_id: {} }
         }
       })
 
@@ -57,14 +55,16 @@ module.exports = {
   },
   async createRoom(req, res, next) {
     try {
-      const { hostel_id, room_name, price, description, status } = req.body;
+      const { hostel_id, room_name, price, description, status, service } = req.body;
       const data = new Room({
         hostel_id,
         room_name,
         price,
         description,
+        service,
         status,
       });
+
       const isRoom = await Room.findOne({ room_name });
       if (isRoom) {
         res.status(401).json({

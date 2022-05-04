@@ -10,28 +10,49 @@ const roomForRent = require("../model/room_for_rent");
 
 function calcualateTotalService(array) {
   const sum = array.reduce((acc, currentValue, currentIndex, arr) => {
-    return acc + currentValue.price;
+    return acc + parseInt(currentValue.price);
   }, 0);
-  return sum;
+  return parseInt(sum);
 }
-function calcualateTotal(e, w, pe, pw, pr, other_service) {
+function calcualateTotalServiceInRoom(array) {
+  const sum = array.reduce((acc, currentValue, currentIndex, arr) => {
+    return acc + parseInt(currentValue.price);
+  }, 0);
+  return parseInt(sum);
+}
+function calcualateTotal(e, w, pe, pw, pr, other_service, service) {
   const totalService = calcualateTotalService(other_service);
-  const totalPrice = pr + e * pe + pw * w + totalService;
+  const totalServiceInRoom = calcualateTotalServiceInRoom(service);
+  const totalPrice = pr + e * pe + pw * w + totalService + totalServiceInRoom;
   return totalPrice;
 }
 
 module.exports = {
   getAllInvoice(req, res, next) {
-    Invoice.find()
-      .then((rs) => {
-        res.status(200).json({
-          message: "get all invoice successfully",
-          data: rs,
+    const { date } = req.query;
+    if (date) {
+      Invoice.find({ date_month: req.query.date })
+        .then((rs) => {
+          res.status(200).json({
+            message: "get all invoice successfully",
+            data: rs,
+          });
+        })
+        .catch((err) => {
+          res.status(500).json({ message: err });
         });
-      })
-      .catch((err) => {
-        res.status(500).json({ message: err });
-      });
+    } else {
+      Invoice.find()
+        .then((rs) => {
+          res.status(200).json({
+            message: "get all invoice successfully",
+            data: rs,
+          });
+        })
+        .catch((err) => {
+          res.status(500).json({ message: err });
+        });
+    }
   },
   async createNewInvoice(req, res, next) {
     try {
@@ -45,7 +66,7 @@ module.exports = {
         total,
         status,
       } = req.body;
-      const room = await Room.findById({ _id: room_id }).populate('hostel_id');
+      const room = await Room.findById({ _id: room_id }).populate("hostel_id");
       const user = await User.findById({ _id: user_id });
       if (user !== null && room !== null) {
         const data = new Invoice({
@@ -64,7 +85,8 @@ module.exports = {
           room.hostel_id.price_water,
           room.hostel_id.price_electric,
           room.price,
-          other_service
+          other_service,
+          room.service
         );
         if (!validYearMonth(date_month)) {
           res.status(401).json({
@@ -135,8 +157,8 @@ module.exports = {
             <tr>
               <td>Other Services(VND)</td>
               <td>${formatPrice(
-              calcualateTotalService(result.other_service)
-            )}</td>
+                calcualateTotalService(result.other_service)
+              )}</td>
             </tr>
             <tr>
               <td>Total(VND)</td>
@@ -159,6 +181,7 @@ module.exports = {
     }
   },
   async uploadInvoiceByExcel(req, res, next) {
+    let countIndex = 0;
     try {
       if (!req.file) {
         return res
@@ -215,23 +238,32 @@ module.exports = {
           const roomFound = await Room.findOne({
             room_name: rs.room_name,
             hostel_id: hostelFound._id,
-          });
-          const roomRent = await roomForRent.findOne({
-            room_id: roomFound._id,
-          });
-          if (roomRent !== null) {
-            const dateFormat = new Date(rs.date).toLocaleDateString();
-            const userFound = await Invoice.findOne({
-              user_id: roomRent.user_id,
-              date_month: rs.date,
-            });
-            const isInvoiced = await Invoice.findOne({ date_month: dateFormat.slice(2) }, { room_id: roomRent.room_id });
-            if (isInvoiced) {
-              res.status(402).json({
-                message: "Invoice already exists",
-                status: false,
+          }).lean();
+          if (roomFound) {
+            const roomRent = await roomForRent
+              .findOne({
+                room_id: roomFound._id,
               })
-            } else {
+              .populate("user_id", "-password");
+            if (roomRent !== null) {
+              const dateFormat = new Date(rs.date).toLocaleDateString();
+              const userFound = await Invoice.findOne({
+                user_id: roomRent.user_id,
+                date_month: rs.date,
+              });
+              const isInvoiced = await Invoice.findOne(
+                { date_month: dateFormat.slice(2) },
+                { room_id: roomRent.room_id }
+              );
+              const total = calcualateTotal(
+                rs.electric,
+                rs.water,
+                hostelFound.price_electric,
+                hostelFound.price_water,
+                roomFound.price,
+                rs.other,
+                roomFound.service || 0
+              );
               const dataToSave = new Invoice({
                 room_id: roomFound._id,
                 water_consumed_per_month: rs.water,
@@ -241,14 +273,72 @@ module.exports = {
                 other_service: rs.other,
                 user_id: roomRent.user_id,
                 date_month: dateFormat.slice(2),
-                total: calcualateTotal(rs.electric, rs.water, hostelFound.price_electric, hostelFound.price_water, roomFound.price, rs.other),
+                total: total,
                 status: false,
               });
               if (!userFound) {
                 await dataToSave.save();
-                res.json({
-                  data: dataToSave,
-                  message: "Upload invoice successfuly",
+                countIndex++;
+                sendEmail({
+                  email: roomRent.user_id.email,
+                  subject: `Thông báo đóng tiền phòng ${
+                    rs.room_name
+                  } tháng ${new Date(rs.date).toLocaleDateString().slice(2)}`,
+                  html: `
+                    <head>
+                    <style>
+                    *{
+                      margin:0;
+                      padding:0;
+                    }
+                    table {
+                      width:100%;
+                      border: 1px solid #333;
+                      border-collapse: collapse;
+                      text-align: left;
+                      color: #333;
+                    }
+                    tr {
+                      border: 1px solid #333;
+                    }
+  
+                    td {
+                      background-color: #9fb4ff;
+                    }
+  
+                    </style>
+  
+                    </head>
+                  <table>
+                  <thead></thead>
+                  <tbody>
+                    <tr>
+                      <td>RoomNo</td>
+                      <td>${rs.room_name}</td>
+                    </tr>
+                    <tr>
+                      <td>Price(VND)</td>
+                      <td>${formatPrice(roomFound.price)}</td>
+                    </tr>
+                    <tr>
+                      <td>Water Used(M3)</td>
+                      <td>${rs.water}</td>
+                    </tr>
+                    <tr>
+                      <td>Electric Used(KW)</td>
+                      <td>${rs.electric}</td>
+                    </tr>
+                    <tr>
+                      <td>Other Services(VND)</td>
+                      <td>${formatPrice(calcualateTotalService(rs.other))}</td>
+                    </tr>
+                    <tr>
+                      <td>Total(VND)</td>
+                      <td>${formatPrice(dataToSave.total)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                    `,
                 });
               } else {
                 res.json({
@@ -257,7 +347,16 @@ module.exports = {
                 });
               }
             }
+          } else {
+            res.status(403).json({
+              message: "Room not found",
+            });
           }
+        }
+        if (countIndex === result.length) {
+          res.json({
+            message: "Upload invoice successfuly",
+          });
         }
       });
     } catch (error) {
@@ -283,23 +382,23 @@ module.exports = {
   async getInvoiceByUser(req, res, next) {
     try {
       const { user_id } = req.body;
-      const response = await Invoice.find(({ user_id: user_id }));
+      const response = await Invoice.find({ user_id: user_id });
       if (response.length !== 0) {
         res.status(200).json({
-          status: 'success',
-          data: response
-        })
+          status: "success",
+          data: response,
+        });
       } else {
         res.status(404).json({
           message: "No invoice found for user",
-          status: false
-        })
+          status: false,
+        });
       }
     } catch (error) {
       res.status(400).json({
         message: "Error get invoice user",
-        status: "Internal Server Error"
-      })
+        status: "Internal Server Error",
+      });
     }
-  }
+  },
 };
