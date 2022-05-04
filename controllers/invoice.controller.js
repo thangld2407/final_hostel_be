@@ -88,12 +88,14 @@ module.exports = {
           other_service,
           room.service
         );
+        console.log(totalClient);
+        console.log(total)
         if (!validYearMonth(date_month)) {
           res.status(401).json({
             message: "Invalid date month, you must be a valid uear month",
           });
         }
-        if (totalClient !== total) {
+        if (parseInt(totalClient) !== parseInt(total)) {
           res.status(403).json({
             message: "Please calculate again total before continuing",
           });
@@ -157,8 +159,8 @@ module.exports = {
             <tr>
               <td>Other Services(VND)</td>
               <td>${formatPrice(
-                calcualateTotalService(result.other_service)
-              )}</td>
+              calcualateTotalService(result.other_service)
+            )}</td>
             </tr>
             <tr>
               <td>Total(VND)</td>
@@ -281,9 +283,8 @@ module.exports = {
                 countIndex++;
                 sendEmail({
                   email: roomRent.user_id.email,
-                  subject: `Thông báo đóng tiền phòng ${
-                    rs.room_name
-                  } tháng ${new Date(rs.date).toLocaleDateString().slice(2)}`,
+                  subject: `Thông báo đóng tiền phòng ${rs.room_name
+                    } tháng ${new Date(rs.date).toLocaleDateString().slice(2)}`,
                   html: `
                     <head>
                     <style>
