@@ -23,7 +23,10 @@ function calcualateTotalServiceInRoom(array) {
 function calcualateTotal(e, w, pe, pw, pr, other_service, service) {
   const totalService = calcualateTotalService(other_service);
   const totalServiceInRoom = calcualateTotalServiceInRoom(service);
+  console.log(totalService, "AAA")
+  console.log(e, w, pe, pr)
   const totalPrice = pr + e * pe + pw * w + totalService + totalServiceInRoom;
+  console.log(totalPrice, "Gia tien")
   return totalPrice;
 }
 
@@ -79,21 +82,24 @@ module.exports = {
           status,
           total,
         });
+        console.log(typeof room.hostel_id.price_water, typeof room.hostel_id.price_electric)
         const totalClient = calcualateTotal(
-          electricity_consumed_per_month,
-          water_consumed_per_month,
-          room.hostel_id.price_water,
-          room.hostel_id.price_electric,
-          room.price,
+          parseInt(electricity_consumed_per_month),
+          parseInt(water_consumed_per_month),
+          parseInt(room.hostel_id.price_electric),
+          parseInt(room.hostel_id.price_water),
+          parseInt(room.price),
           other_service,
           room.service
         );
+        console.log(totalClient);
+        console.log(total)
         if (!validYearMonth(date_month)) {
           res.status(401).json({
             message: "Invalid date month, you must be a valid uear month",
           });
         }
-        if (totalClient !== total) {
+        if (parseInt(totalClient) !== parseInt(total)) {
           res.status(403).json({
             message: "Please calculate again total before continuing",
           });
@@ -157,8 +163,8 @@ module.exports = {
             <tr>
               <td>Other Services(VND)</td>
               <td>${formatPrice(
-                calcualateTotalService(result.other_service)
-              )}</td>
+              calcualateTotalService(result.other_service)
+            )}</td>
             </tr>
             <tr>
               <td>Total(VND)</td>
@@ -281,9 +287,8 @@ module.exports = {
                 countIndex++;
                 sendEmail({
                   email: roomRent.user_id.email,
-                  subject: `Thông báo đóng tiền phòng ${
-                    rs.room_name
-                  } tháng ${new Date(rs.date).toLocaleDateString().slice(2)}`,
+                  subject: `Thông báo đóng tiền phòng ${rs.room_name
+                    } tháng ${new Date(rs.date).toLocaleDateString().slice(2)}`,
                   html: `
                     <head>
                     <style>
