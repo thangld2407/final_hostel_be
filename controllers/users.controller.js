@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const area = require("../model/area");
-const hostel = require("../model/hostel");
+const Hostel = require("../model/hostel");
 
 const User = require("../model/user");
 const userRole = require("../model/userRole");
@@ -12,7 +12,7 @@ module.exports = {
   async getAllUser(req, res) {
     let data;
     try {
-      const { fullname, role } = req.query;
+      const { fullname, role, hostel } = req.query;
       const name = await User.findOne(({ fullname: fullname })).lean();
 
       if (fullname) {
@@ -25,6 +25,14 @@ module.exports = {
           .populate("role_id")
           .populate("user_id", "-password")
           .lean();
+      } else if (hostel) {
+        const nameByHostel = await User.find(({ hostel_id: hostel })).populate('hostel_id');
+        let a = []
+        for (hst of nameByHostel) {
+          const rs = await UserRole.findOne(({ user_id: hst._id })).populate('role_id').populate('user_id', '-password').lean();
+          a.push(rs)
+        }
+        data = a
       }
       else {
         data = await UserRole.find()
@@ -34,7 +42,7 @@ module.exports = {
       }
       let user = [];
       for (el of data) {
-        const hostels = await hostel
+        const hostels = await Hostel
           .findById({ _id: el.user_id.hostel_id })
           .populate("area_id");
         el = {
