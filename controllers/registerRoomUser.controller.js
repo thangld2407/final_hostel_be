@@ -5,7 +5,7 @@ const User = require("../model/user");
 module.exports = {
   async registerRoomUser(req, res, next) {
     try {
-      const { user_id, room_id, date } = req.body;
+      const { user_id, room_id, date, room_mate } = req.body;
       const dataRoom = await Room.findById({ _id: room_id }).lean();
       const dataUser = await User.findById({ _id: user_id }).lean();
       if (!date) {
@@ -23,7 +23,7 @@ module.exports = {
         } else {
 
           await Room.findByIdAndUpdate(room_id, { status: true });
-          const dataForRent = new RoomForRent({ user_id, room_id, date });
+          const dataForRent = new RoomForRent({ user_id, room_id, date, room_mate: room_mate || [] });
           await dataForRent.save();
           res.status(200).json({
             message: "Register room successfully",
