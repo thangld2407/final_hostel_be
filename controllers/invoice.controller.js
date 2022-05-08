@@ -71,115 +71,121 @@ module.exports = {
       } = req.body;
       const room = await Room.findById({ _id: room_id }).populate("hostel_id");
       const user = await User.findById({ _id: user_id });
-      if (user !== null && room !== null) {
-        const data = new Invoice({
-          room_id,
-          water_consumed_per_month,
-          electricity_consumed_per_month,
-          other_service,
-          user_id,
-          date_month,
-          status,
-          total,
-        });
-        console.log(typeof room.hostel_id.price_water, typeof room.hostel_id.price_electric)
-        const totalClient = calcualateTotal(
-          parseInt(electricity_consumed_per_month),
-          parseInt(water_consumed_per_month),
-          parseInt(room.hostel_id.price_electric),
-          parseInt(room.hostel_id.price_water),
-          parseInt(room.price),
-          other_service,
-          room.service
-        );
-        console.log(totalClient);
-        console.log(total)
-        if (!validYearMonth(date_month)) {
-          res.status(401).json({
-            message: "Invalid date month, you must be a valid uear month",
+      const isInvoice = await Invoice.findOne({ date_month: date_month })
+      if (isInvoice) {
+
+        if (user !== null && room !== null) {
+          const data = new Invoice({
+            room_id,
+            water_consumed_per_month,
+            electricity_consumed_per_month,
+            other_service,
+            user_id,
+            date_month,
+            status,
+            total,
           });
-        }
-        if (parseInt(totalClient) !== parseInt(total)) {
-          res.status(403).json({
-            message: "Please calculate again total before continuing",
-          });
-        } else {
-          const result = await data.save();
-          res.status(200).json({
-            message: "successfully to creata new invoice",
-            data: {
-              invoice: result,
-              room: room,
-            },
-          });
-          console.log(user);
-          sendEmail({
-            email: user.email,
-            subject: `Thông báo đóng tiền phòng tháng ${result.date_month}`,
-            html: `
-            <head>
-            <style>
-            *{
-              margin:0;
-              padding:0;
-            }
-            table {
-              width:100%;
-              border: 1px solid #333;
-              border-collapse: collapse;
-              text-align: left;
-              color: #333;
-            }
-            tr {
-              border: 1px solid #333;
-            }
+          console.log(typeof room.hostel_id.price_water, typeof room.hostel_id.price_electric)
+          const totalClient = calcualateTotal(
+            parseInt(electricity_consumed_per_month),
+            parseInt(water_consumed_per_month),
+            parseInt(room.hostel_id.price_electric),
+            parseInt(room.hostel_id.price_water),
+            parseInt(room.price),
+            other_service,
+            room.service
+          );
+          console.log(totalClient);
+          console.log(total)
+          if (!validYearMonth(date_month)) {
+            res.status(401).json({
+              message: "Invalid date month, you must be a valid uear month",
+            });
+          }
+          if (parseInt(totalClient) !== parseInt(total)) {
+            res.status(403).json({
+              message: "Please calculate again total before continuing",
+            });
+          } else {
+            const result = await data.save();
+            res.status(200).json({
+              message: "successfully to creata new invoice",
+              data: {
+                invoice: result,
+                room: room,
+              },
+            });
+            console.log(user);
+            sendEmail({
+              email: user.email,
+              subject: `Thông báo đóng tiền phòng tháng ${result.date_month}`,
+              html: `
+              <head>
+              <style>
+              *{
+                margin:0;
+                padding:0;
+              }
+              table {
+                width:100%;
+                border: 1px solid #333;
+                border-collapse: collapse;
+                text-align: left;
+                color: #333;
+              }
+              tr {
+                border: 1px solid #333;
+              }
+              
+              td {
+                background-color: #9fb4ff;
+              }
             
-            td {
-              background-color: #9fb4ff;
-            }
-          
-            </style>
-  
-            </head>
-          <table>
-          <thead></thead>
-          <tbody>
-            <tr>
-              <td>RoomNo</td>
-              <td>${room.room_name}</td>
-            </tr>
-            <tr>
-              <td>Price(VND)</td>
-              <td>${formatPrice(room.price)}</td>
-            </tr>
-            <tr>
-              <td>Water Used(M3)</td>
-              <td>${result.water_consumed_per_month}</td>
-            </tr>
-            <tr>
-              <td>Electric Used(KW)</td>
-              <td>${result.electricity_consumed_per_month}</td>
-            </tr>
-            <tr>
-              <td>Other Services(VND)</td>
-              <td>${formatPrice(
-              calcualateTotalService(result.other_service)
-            )}</td>
-            </tr>
-            <tr>
-              <td>Total(VND)</td>
-              <td>${formatPrice(result.total)}</td>
-            </tr>
-          </tbody>
-        </table>
-            `,
+              </style>
+    
+              </head>
+            <table>
+            <thead></thead>
+            <tbody>
+              <tr>
+                <td>RoomNo</td>
+                <td>${room.room_name}</td>
+              </tr>
+              <tr>
+                <td>Price(VND)</td>
+                <td>${formatPrice(room.price)}</td>
+              </tr>
+              <tr>
+                <td>Water Used(M3)</td>
+                <td>${result.water_consumed_per_month}</td>
+              </tr>
+              <tr>
+                <td>Electric Used(KW)</td>
+                <td>${result.electricity_consumed_per_month}</td>
+              </tr>
+              <tr>
+                <td>Other Services(VND)</td>
+                <td>${formatPrice(
+                calcualateTotalService(result.other_service)
+              )}</td>
+              </tr>
+              <tr>
+                <td>Total(VND)</td>
+                <td>${formatPrice(result.total)}</td>
+              </tr>
+            </tbody>
+          </table>
+              `,
+            });
+          }
+        } else {
+          res.status(403).json({
+            message: "User or Room not found",
+            status: false,
           });
         }
       } else {
-        res.status(403).json({
-          message: "User or Room not found",
-          status: false,
-        });
+        res.status(403).json({ message: "Invoice has already exists" })
       }
     } catch (error) {
       console.log(error);
