@@ -392,8 +392,8 @@ module.exports = {
   },
   async getInvoiceByUser(req, res, next) {
     try {
-      const { user_id } = req.body;
-      const response = await Invoice.find({ user_id: user_id });
+      const { user_id, date } = req.body;
+      const response = await Invoice.find({ user_id: user_id, date_month: date });
       if (response.length !== 0) {
         res.status(200).json({
           status: "success",
