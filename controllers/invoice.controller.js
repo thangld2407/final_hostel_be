@@ -71,7 +71,7 @@ module.exports = {
       } = req.body;
       const room = await Room.findById({ _id: room_id }).populate("hostel_id");
       const user = await User.findById({ _id: user_id });
-      const isInvoice = await Invoice.findOne({ date_month: date_month })
+      const isInvoice = await Invoice.findOne({ date_month: date_month, user_id: user_id })
       if (isInvoice) {
 
         if (user !== null && room !== null) {
