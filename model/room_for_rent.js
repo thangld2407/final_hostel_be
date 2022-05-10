@@ -15,6 +15,10 @@ const RoomForRent = mongoose.Schema(
     date: {
       type: Date,
       required: true,
+    },
+    room_mate: {
+      type: Array,
+      trim: true,
     }
   },
   {

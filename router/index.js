@@ -11,6 +11,7 @@ const issuesRouter = require("./issues");
 const roomForRent = require("./room_for_rent");
 const paymentRouter = require("./payment");
 const dashboard = require("./dashboard");
+const roomMate = require("./roommate");
 
 const router = express.Router();
 router.use(authRouter);
@@ -24,4 +25,5 @@ router.use(requireAuth, invoiceRouter);
 router.use(requireAuth, issuesRouter);
 router.use(requireAuth, roomForRent);
 router.use(requireAuth, dashboard);
+router.use(requireAuth, roomMate)
 module.exports = router;

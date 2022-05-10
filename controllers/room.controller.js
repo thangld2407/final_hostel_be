@@ -3,11 +3,21 @@ const RoomForRent = require("../model/room_for_rent");
 module.exports = {
   async getAllRoom(req, res, next) {
     try {
-      const rs = await Room.find().populate('hostel_id');
-      res.status(200).json({
-        message: "get all room succesfully",
-        data: rs,
-      });
+      const { hostel } = req.query;
+      if (hostel) {
+        const rs = await Room.find(({ hostel_id: hostel })).populate('hostel_id');
+        res.status(200).json({
+          message: "get all room succesfully",
+          data: rs,
+        });
+
+      } else {
+        const rs = await Room.find().populate('hostel_id');
+        res.status(200).json({
+          message: "get all room succesfully",
+          data: rs,
+        });
+      }
     } catch (error) {
       res.status(404).json({ error: error });
     }
