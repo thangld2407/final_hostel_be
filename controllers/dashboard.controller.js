@@ -44,9 +44,12 @@ module.exports = {
 
       for (i of roomFound) {
         const rs = await invoice.findOne({ room_id: i._id, date_month: date });
-        arrInvoice.push(rs);
+        if (rs) {
+
+          arrInvoice.push(rs);
+        }
       }
-      const sum = calculate(arrInvoice);
+      const sum = calculate(arrInvoice) || 0;
       res.json({
         total: sum || 0,
       });

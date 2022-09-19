@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const area = require("../model/area");
-const hostel = require("../model/hostel");
+const Hostel = require("../model/hostel");
 
 const User = require("../model/user");
 const userRole = require("../model/userRole");
@@ -12,7 +12,7 @@ module.exports = {
   async getAllUser(req, res) {
     let data;
     try {
-      const { fullname, role } = req.query;
+      const { fullname, role, hostel } = req.query;
       const name = await User.findOne(({ fullname: fullname })).lean();
 
       if (fullname) {
@@ -25,6 +25,14 @@ module.exports = {
           .populate("role_id")
           .populate("user_id", "-password")
           .lean();
+      } else if (hostel) {
+        const nameByHostel = await User.find(({ hostel_id: hostel })).populate('hostel_id');
+        let a = []
+        for (hst of nameByHostel) {
+          const rs = await UserRole.findOne(({ user_id: hst._id })).populate('role_id').populate('user_id', '-password').lean();
+          a.push(rs)
+        }
+        data = a
       }
       else {
         data = await UserRole.find()
@@ -34,14 +42,17 @@ module.exports = {
       }
       let user = [];
       for (el of data) {
-        const hostels = await hostel
+        const hostels = await Hostel
           .findById({ _id: el.user_id.hostel_id })
           .populate("area_id");
-        el = {
-          ...el,
-          hostels,
-        };
-        user.push(el);
+        if (hostels) {
+
+          el = {
+            ...el,
+            hostels,
+          };
+          user.push(el);
+        }
       }
       res.status(200).json({
         message: "success to get all data",
@@ -110,56 +121,61 @@ module.exports = {
       hostel_id,
     } = req.body;
     const hashPassword = bcrypt.hashSync(password, 10);
-    const data = new User({
-      fullname,
-      email,
-      password: hashPassword,
-      id_card,
-      date_of_birth,
-      gender,
-      hometown,
-      rental_date,
-      username,
-      hostel_id,
-    });
-    if (!role_id) {
-      res.status(401).json({
-        message: "You must enter role_id",
-      });
+    const isHostel = await Hostel.findById(hostel_id).lean();
+    if (!isHostel) {
+      res.json({ status: false, message: "Hostel not found" })
     } else {
-      const userRole = new UserRole({
-        role_id: role_id,
-        user_id: data._id,
+      const data = new User({
+        fullname,
+        email,
+        password: hashPassword,
+        id_card,
+        date_of_birth,
+        gender,
+        hometown,
+        rental_date,
+        username,
+        hostel_id,
       });
-      try {
-        let user = await User.findOne({ email });
-        if (user) {
-          res.json({
-            message: "User already exists",
-          });
-        } else if (!validEmail(email)) {
-          res.json({ message: "Invalid email" });
-        } else if (!validPassword(password)) {
-          res.json({ message: "Password must be at least > 8 character" });
-        } else {
-          const dataToSave = await data.save();
-          const dataUserRole = await userRole.save();
-          await sendEmail({
-            email: email,
-            subject: "Thanks you for registering your account",
-            html: `
-              <h3>Your email: ${email}</h3>
-              <h3>Your password: ${password}</h3>
-              <a href="https://hostel.thangld-dev.tech/">Click here to login</a>
-            `,
-          });
-          res.status(200).json({
-            message: "Success to create",
-            data: { user: dataToSave, role: dataUserRole },
-          });
+      if (!role_id) {
+        res.status(401).json({
+          message: "You must enter role_id",
+        });
+      } else {
+        const userRole = new UserRole({
+          role_id: role_id,
+          user_id: data._id,
+        });
+        try {
+          let user = await User.findOne({ email });
+          if (user) {
+            res.json({
+              message: "User already exists",
+            });
+          } else if (!validEmail(email)) {
+            res.json({ message: "Invalid email" });
+          } else if (!validPassword(password)) {
+            res.json({ message: "Password must be at least > 8 character" });
+          } else {
+            const dataToSave = await data.save();
+            const dataUserRole = await userRole.save();
+            await sendEmail({
+              email: email,
+              subject: "Thanks you for registering your account",
+              html: `
+                <h3>Your email: ${email}</h3>
+                <h3>Your password: ${password}</h3>
+                <a href="https://hostel.thangld-dev.tech/">Click here to login</a>
+              `,
+            });
+            res.status(200).json({
+              message: "Success to create",
+              data: { user: dataToSave, role: dataUserRole },
+            });
+          }
+        } catch (error) {
+          res.status(401).json({ message: error.message });
         }
-      } catch (error) {
-        res.status(401).json({ message: error.message });
       }
     }
   },
